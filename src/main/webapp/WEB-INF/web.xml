@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app version="3.0"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         metadata-complete="false">
+
+    <listener>
+        <listener-class>org.jboss.weld.environment.servlet.Listener</listener-class>
+    </listener>
+
+    <servlet>
+        <servlet-name>Config Downloader</servlet-name>
+        <servlet-class>lv.div.locator.servlet.ConfigDownloader</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Config Downloader</servlet-name>
+        <url-pattern>/config/config</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Signal Receiver</servlet-name>
+        <servlet-class>lv.div.locator.servlet.SignalReceiverServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Signal Receiver</servlet-name>
+        <url-pattern>/signal</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>BSSID Receiver</servlet-name>
+        <servlet-class>lv.div.locator.servlet.BSSIDReceiverServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>BSSID Receiver</servlet-name>
+        <url-pattern>/bssid</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ConfigInitServlet</servlet-name>
+        <servlet-class>lv.div.locator.servlet.ServerConfigurationLoader</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ConfigInitServlet</servlet-name>
+        <url-pattern>/admin/resetconfig</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Ping</servlet-name>
+        <servlet-class>lv.div.locator.healthcheck.PingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Ping</servlet-name>
+        <url-pattern>/ping</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Log file uploader</servlet-name>
+        <servlet-class>lv.div.locator.servlet.LogFileUpload</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Log file uploader</servlet-name>
+        <url-pattern>/logupload</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CRON tables cleanup</servlet-name>
+        <servlet-class>lv.div.locator.servlet.cron.CleanupTables</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CRON tables cleanup</servlet-name>
+        <url-pattern>/cron/cleanstate</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CRON state watch agent</servlet-name>
+        <servlet-class>lv.div.locator.servlet.cron.StateWatch</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CRON state watch agent</servlet-name>
+        <url-pattern>/cron/statewatch</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TempServlet</servlet-name>
+        <servlet-class>lv.div.locator.servlet.cron.TempServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TempServlet</servlet-name>
+        <url-pattern>/temp</url-pattern>
+    </servlet-mapping>
+
+
+    <!--<servlet>-->
+        <!--<servlet-name>StatisticsServlet</servlet-name>-->
+        <!--<servlet-class>lv.div.locator.servlet.Statistics</servlet-class>-->
+        <!--<load-on-startup>1</load-on-startup>-->
+    <!--</servlet>-->
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>StatisticsServlet</servlet-name>-->
+        <!--<url-pattern>/stat</url-pattern>-->
+    <!--</servlet-mapping>-->
+
+    <servlet>
+   		<servlet-name>faces</servlet-name>
+   		<servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+   		<load-on-startup>1</load-on-startup>
+   	</servlet>
+   	<servlet-mapping>
+   		<servlet-name>faces</servlet-name>
+   		<url-pattern>*.xhtml</url-pattern>
+   	</servlet-mapping>
+
+    <context-param>
+        <param-name>facelets.SKIP_COMMENTS</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>javax.faces.SEPARATOR_CHAR</param-name>
+        <param-value>_</param-value>
+    </context-param>
+
+    <welcome-file-list>
+        <welcome-file>index.xhtml</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <!--<context-param>-->
+        <!--<description>State saving method: 'client' or 'server' (=default). See JSF Specification 2.5.2</description>-->
+        <!--<param-name>javax.faces.STATE_SAVING_METHOD</param-name>-->
+        <!--<param-value>server</param-value>-->
+    <!--</context-param>-->
+
+
+
+
+
+
+
+    <security-role>
+        <role-name>locatoradmin</role-name>
+    </security-role>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+    </login-config>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Admin section</web-resource-name>
+            <url-pattern>/admin/*</url-pattern>
+            <url-pattern>/data/*</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+            <http-method>PUT</http-method>
+            <http-method>DELETE</http-method>
+            <http-method>HEAD</http-method>
+            <http-method>TRACE</http-method>
+        </web-resource-collection>
+        <!--<auth-constraint>-->
+            <!--<role-name>locatoradmin</role-name>-->
+        <!--</auth-constraint>-->
+    </security-constraint>
+
+
+
+
+
+
+
+</web-app>
+

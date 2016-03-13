@@ -1,0 +1,105 @@
+<!DOCTYPE html [
+        <!ENTITY nbsp "&#160;">
+        ]>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+       xmlns:f="http://java.sun.com/jsf/core"
+       xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+<f:view contentType="text/html">
+    <h:head>
+
+        <link rel="icon" href="//locator.v1.lv/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="//locator.v1.lv/favicon.ico" type="image/x-icon" />
+
+        <title>Locator: Logs</title>
+
+        <link rel="stylesheet" href="/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/css/bootstrap-theme.min.css" />
+
+    </h:head>
+    <h:body>
+
+
+        <ui:include src="/WEB-INF/inc/header.xhtml">
+            <ui:param name="page" value="logs" />
+        </ui:include>
+
+        <div class="container">
+            <h:form id="mainForm">
+
+            <div class="row">
+                <div class="col-md-12">
+                   <h2>Devices</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h:selectOneListbox styleClass="form-control" size="1" id="devices" value="#{logs.selectedDeviceId}">
+                        <p:ajax listener="#{logs.deviceChange}" immediate="true" process="@this"  />
+                        <f:selectItems value="#{logs.devices}"
+                                       var="d"
+                                       itemValue="#{d.deviceId}"
+                                       itemLabel="#{d.value}"
+                                       itemLabelEscaped="true" />
+                    </h:selectOneListbox>
+                </div>
+            </div>
+
+            <div class="row"><div class="col-md-12">&nbsp;</div></div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <p:commandButton styleClass="btn btn-primary" update="dataTable" value="Show log files for selected device" id="ajax"  />
+                </div>
+            </div>
+
+            <div class="row"><div class="col-md-12">&nbsp;</div></div>
+
+            <div class="row">
+
+                <div class="col-md-12">
+
+                    <p:dataTable id="dataTable" widgetVar="dataTableVar" var="b" value="#{logs.logFiles}" selectionMode="single"
+                                 selection="#{logs.selectedLogFile}" autoUpdate="true" rowKey="#{b.id}"
+                                 emptyMessage="No log files found" scrollable="true" scrollHeight="250">
+                        <p:ajax event="rowSelect" listener="#{logs.onRowSelect}" />
+
+                        <p:column headerText="Id" footerText="Id">
+                            <h:outputText value="#{b.id}" />
+                        </p:column>
+                        <p:column headerText="Device" footerText="Device">
+                            <h:outputText value="#{b.deviceName}" />
+                        </p:column>
+                        <p:column headerText="Inserted" footerText="Inserted">
+                            <h:outputText value="#{b.inserted}" />
+                        </p:column>
+                        <p:column headerText="File" footerText="File">
+                            <h:outputText value="#{b.filename}" />
+                        </p:column>
+                    </p:dataTable>
+
+
+                </div>
+
+            </div>
+            <div class="row"><div class="col-md-12">&nbsp;</div></div>
+            <div class="row">
+            <div class="col-md-12">
+                <p:commandButton styleClass="btn btn-primary" ajax="false" value="Download selected log file" update="@this" actionListener="#{logs.buttonDownloadAction}" id="ajaxdownload"  />
+            </div>
+            </div>
+
+            </h:form>
+        </div>
+        <!-- /.container -->
+
+
+        <ui:include src="/WEB-INF/inc/footer.xhtml" />
+
+
+
+    </h:body>
+</f:view>
+</html>

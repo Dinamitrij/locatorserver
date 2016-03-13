@@ -1,0 +1,109 @@
+<!DOCTYPE html [
+        <!ENTITY nbsp "&#160;">
+        ]>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+       xmlns:f="http://java.sun.com/jsf/core"
+       xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+<f:view contentType="text/html">
+    <h:head>
+
+        <link rel="icon" href="//locator.v1.lv/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="//locator.v1.lv/favicon.ico" type="image/x-icon" />
+
+        <title>Locator: Administration</title>
+
+        <link rel="stylesheet" href="/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/css/bootstrap-theme.min.css" />
+        <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+
+    </h:head>
+    <h:body>
+
+
+        <ui:include src="/WEB-INF/inc/header.xhtml">
+            <ui:param name="page" value="index" />
+        </ui:include>
+
+
+        <div class="container">
+            <h:form id="mainForm">
+
+            <div class="row">
+                <div class="col-md-4">
+                   <h2>Wifi networks</h2>
+                </div>
+                <div class="col-md-8">
+                    <!--<h:selectOneListbox styleClass="form-control" size="1" id="devices" valueChangeListener="#{adm.deviceChange}" value="#{adm.selectedDeviceId}">-->
+                    <h:selectOneListbox styleClass="form-control" size="1" id="devices" value="#{adm.selectedDeviceId}">
+                        <!--oncomplete="PF('dt').clearFilters()" -->
+                        <!--<h:selectOneListbox styleClass="form-control" size="1" id="devices" value="#{adm.selectedDeviceId}">-->
+                        <p:ajax listener="#{adm.deviceChange}" oncomplete="PF('dataTableVar').filter()" immediate="true" execute="@form" process="@form" update="dataTable" />
+                        <!--<p:ajax listener="#{adm.deviceChange}" update="dataTable" process="@this" />-->
+                        <!--<p:ajax update="@all" />-->
+                        <!--<p:ajax event="change" update="dataTable" listener="#{adm.deviceChange}" />-->
+                        <f:selectItems value="#{adm.devices}"
+                                       var="d"
+                                       itemValue="#{d.deviceId}"
+                                       itemLabel="#{d.value}"
+                                       itemLabelEscaped="true" />
+                    </h:selectOneListbox>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-12">
+
+                    <p:dataTable id="dataTable" widgetVar="dataTableVar" var="b" value="#{adm.bssids}" selectionMode="single"
+                                 selection="#{adm.selectedBssid}" autoUpdate="true"  rowKey="#{b.bssid}"
+                                 emptyMessage="No networks found" filteredValue="#{adm.filteredBssids}" scrollable="true" scrollHeight="150">
+
+                                <p:ajax event="rowSelect" update="mainForm_gmap" listener="#{adm.onRowSelect}" />
+
+                        <p:column filterBy="#{b.name}" filterMatchMode="contains" headerText="Name" footerText="Name">
+                            <h:outputText value="#{b.name}" />
+                        </p:column>
+                        <p:column headerText="Bssid" footerText="Bssid">
+                            <h:outputText value="#{b.bssid}" />
+                        </p:column>
+                    </p:dataTable>
+
+
+                </div>
+
+                <!--<div class="col-md-2">-->
+                    <!--<button type="button" class="btn btn-default">Show on map</button>-->
+                <!--</div>-->
+                <!--<div class="col-md-6">-->
+
+                    <!--<p:inputTextarea rows="5" cols="50" id="bssidname" value="#{adm.selectedBssidValue}" queryDelay="750" minQueryLength="4" />-->
+
+                    <!--<h:outputText id="bssidname" value="#{adm.selectedBssidValue}" />-->
+                    <!--<ui:fragment id="bssidname">-->
+                        <!--#{adm.selectedBssid.name}-->
+                    <!--</ui:fragment>-->
+
+                <!--</div>-->
+            </div>
+
+                <div class="row">
+                <div class="col-md-12">
+                <p:growl id="growl" life="5000" />
+
+                    <p:gmap id="gmap" center="#{adm.mapCenter}" zoom="17" type="ROADMAP" style="width:100%;height:400px" model="#{adm.circleModel}">
+                        <p:ajax event="overlaySelect" listener="#{adm.onCircleSelect}" update="growl" />
+                    </p:gmap>
+                </div>
+                </div>
+            </h:form>
+        </div>
+        <!-- /.container -->
+
+        <ui:include src="/WEB-INF/inc/footer.xhtml" />
+
+    </h:body>
+</f:view>
+</html>

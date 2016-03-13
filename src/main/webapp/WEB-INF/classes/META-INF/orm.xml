@@ -1,0 +1,254 @@
+<entity-mappings
+  xmlns="http://java.sun.com/xml/ns/persistence/orm"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd"
+  version="2.0">
+
+    <entity class="lv.div.locator.model.BSSIDdata">
+           <named-native-query name="BSSIDdata.getNetworks">
+               <description>
+                   <![CDATA[
+                       Getting network
+                   ]]>
+               </description>
+               <query>
+                   <![CDATA[
+
+                    SELECT DISTINCT CONCAT(trim(wifiname), ' (', bssid, ')'), bssid FROM bssiddata WHERE accuracy<30 AND wifiname<>'' AND deviceid = ? ORDER BY 1
+
+   	            ]]>
+               </query>
+           </named-native-query>
+           <named-query name="BSSIDdata.getDataByBssidAndDevice">
+               <description>
+                   <![CDATA[
+                       Getting data by BSSID
+                   ]]>
+               </description>
+               <query>
+                   <![CDATA[
+
+                    SELECT b from BSSIDdata b WHERE b.bssid = :bssid AND b.deviceId = :deviceId AND  b.accuracy<30
+
+   	            ]]>
+               </query>
+           </named-query>
+    </entity>
+
+    <entity class="lv.div.locator.model.Configuration">
+              <named-query name="Configuration.listDevices">
+                  <description>
+                      <![CDATA[
+                          List all devices
+                      ]]>
+                  </description>
+                  <query>
+                      <![CDATA[
+
+                       SELECT c FROM Configuration c WHERE c.key = :ckey
+
+      	            ]]>
+                  </query>
+              </named-query>
+              <named-query name="Configuration.listConfigByDeviceId">
+                  <description>
+                      <![CDATA[
+                          List all configuration records by device ID
+                      ]]>
+                  </description>
+                  <query>
+                      <![CDATA[
+
+                       SELECT c FROM Configuration c WHERE c.deviceId = :deviceId
+
+      	            ]]>
+                  </query>
+              </named-query>
+              <named-query name="Configuration.getSafeWifiConfig">
+                  <description>
+                      <![CDATA[
+                          Finds Wifi configuration for the device
+                      ]]>
+                  </description>
+                  <query>
+                      <![CDATA[
+
+                       SELECT c FROM Configuration c WHERE c.key = :ckey AND c.deviceId = :deviceId
+
+      	            ]]>
+                  </query>
+              </named-query>
+       </entity>
+
+    <entity class="lv.div.locator.model.LogFile">
+              <named-query name="LogFile.listByDevice">
+                  <description>
+                      <![CDATA[
+                          List log files for particular device
+                      ]]>
+                  </description>
+                  <query>
+                      <![CDATA[
+
+                       SELECT m FROM LogFile m WHERE m.deviceId = :deviceId ORDER BY m.id DESC
+
+      	            ]]>
+                  </query>
+              </named-query>
+       </entity>
+
+    <entity class="lv.div.locator.model.GPSData">
+        <named-query name="GPSData.findLastNonSafe">
+            <description>
+                <![CDATA[
+                    Finds non-safe GPS coordinates for device ("LIMIT 1" or whatever, will be added in code)
+                ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                 SELECT g FROM GPSData g WHERE g.deviceId = :deviceId AND g.safeNetwork = :safenetwork AND g.latitude != :latfilter AND g.accuracy <= :accuracy ORDER BY g.id DESC
+
+	            ]]>
+            </query>
+        </named-query>
+        <named-query name="GPSData.findLastNonSafeAfterReported">
+            <description>
+                <![CDATA[
+                    Finds non-safe GPS coordinates for device AFTER mentioned point ("LIMIT 1" or whatever, will be added in code)
+                ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                 SELECT g FROM GPSData g WHERE g.deviceId = :deviceId AND g.safeNetwork = :safenetwork AND g.latitude != :latfilter AND g.accuracy <= :accuracy AND g.id > :lastId ORDER BY g.id DESC
+
+	            ]]>
+            </query>
+        </named-query>
+        <named-query name="GPSData.listLastRecordsByDevice">
+            <description>
+                <![CDATA[
+                    Lists last saved GPS reports by device, ordered by timestamp DESC
+                ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                 SELECT g FROM GPSData g WHERE g.deviceId = :deviceId ORDER BY g.inserted desc
+
+	            ]]>
+            </query>
+        </named-query>
+
+
+        <named-native-query name="GPSData.listStatistics">
+            <description>
+                <![CDATA[
+                          Getting statistics data of Wifi networks and GPS coordinates
+                      ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                        SELECT g1.* FROM gpsdata g1 INNER JOIN
+                                       (SELECT max(inserted) as MaxPostDate, latitude, longitude
+                                        FROM gpsdata GROUP BY concat (latitude, longitude)) g2
+                                       ON g1.latitude = g2.latitude  AND g1.inserted = g2.MaxPostDate
+                        WHERE day(g1.inserted)=day(NOW()) AND g1.deviceid = ? AND g1.accuracy>0
+                        ORDER BY g1.inserted desc LIMIT ?
+
+      	            ]]>
+            </query>
+        </named-native-query>
+        <named-native-query name="GPSData.listStatisticsDEBUG">
+            <description>
+                <![CDATA[
+                          Getting statistics data of Wifi networks and GPS coordinates
+                      ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                        SELECT g1.* FROM gpsdata g1 INNER JOIN
+                                       (SELECT max(inserted) as MaxPostDate, latitude, longitude
+                                        FROM gpsdata GROUP BY concat (latitude, longitude)) g2
+                                       ON g1.latitude = g2.latitude  AND g1.inserted = g2.MaxPostDate
+                        WHERE g1.deviceid = ? AND g1.accuracy>0
+                        ORDER BY g1.inserted desc LIMIT ?
+
+      	            ]]>
+            </query>
+        </named-native-query>
+    </entity>
+
+    <entity class="lv.div.locator.model.State">
+              <named-native-query name="State.truncate">
+                  <description>
+                      <![CDATA[
+                          Cleanup State table
+                      ]]>
+                  </description>
+                  <query>
+                      <![CDATA[
+
+                        truncate table state;
+
+      	            ]]>
+                  </query>
+              </named-native-query>
+        <named-native-query name="State.cleanupLastReportedGPSPoint">
+            <description>
+                <![CDATA[
+                          Deletes last reported point
+                      ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                        DELETE FROM state WHERE deviceid = ? AND ckey = 'LAST_REPORTED_GPS_POINT'
+
+      	            ]]>
+            </query>
+        </named-native-query>
+        <named-query name="State.findByDeviceAndKey">
+            <description>
+                <![CDATA[
+                    Finds the State by passed params
+                ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                 SELECT s from State s WHERE s.deviceId = :deviceId AND s.key = :ckey
+
+	            ]]>
+            </query>
+        </named-query>
+        <named-query name="State.deleteByDeviceAndKey">
+            <description>
+                <![CDATA[
+                    Deletes State by passed params
+                ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                 DELETE from State c WHERE c.deviceId = :deviceId AND c.key = :ckey
+
+	            ]]>
+            </query>
+        </named-query>
+
+
+    </entity>
+
+
+
+
+
+
+
+
+
+</entity-mappings>

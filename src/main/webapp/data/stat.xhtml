@@ -1,0 +1,286 @@
+<!DOCTYPE html [
+    <!ENTITY nbsp "&#160;">
+]>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html">
+
+<h:head>
+    #{stat.requestData(param['device'], param['limit'], param['all'])}
+
+    <link rel="icon" href="http://locator.v1.lv/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="http://locator.v1.lv/favicon.ico" type="image/x-icon" />
+
+	<title>Points</title>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css' />
+
+    <style media="screen" type="text/css">
+
+               #map_wrapper {
+                   height: 650px;
+               }
+
+               #map_canvas {
+                   width: 100%;
+                   height: 100%;
+               }
+
+
+
+   body {
+                background: white;
+       font-family: 'Open Sans Condensed', sans-serif;
+              }
+
+              .battery {
+                position: relative;
+                width: 80px;
+                height: 20px;
+                border: 1px solid #{stat.batteryColor()};
+                border-radius: 2px;
+                position: relative;
+                padding: 1px;
+                /*-webkit-transform: scale(0.5);*/
+              }
+              .battery:before {
+                content: '';
+                display: block;
+                position: absolute;
+                top: 50%;
+                right: -6.5px;
+                margin-top: -5px;
+                width: 10px;
+                height: 10px;
+                background: #{stat.batteryColor()};
+                clip: rect(0, 10px, 10px, 6.5px);
+                border-radius: 50%;
+              }
+              .battery.plugged:after {
+                content: '';
+                display: block;
+                position: absolute;
+                top: 50%;
+                right: -41px;
+                margin-top: -5px;
+                width: 10px;
+                height: 10px;
+                background: #f00;
+                border-radius: 50%;
+              }
+              .battery .level {
+                width:  #{stat.currentPoint.battery}%;
+                height: 100%;
+                background: #{stat.batteryColor()};
+                border-radius: 1px;
+              }
+
+           </style>
+
+           <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+           <ui:fragment rendered="#{stat.currentPoint.battery lt 40}">
+           <script type="text/javascript">var blink = function(){$('#blinkerBatt').toggle();};$(document).ready(function() {setInterval(blink, 500);});</script>
+           </ui:fragment>
+
+
+           <script type="text/javascript">
+               jQuery(function ($) {
+                   // Asynchronously Load the map API
+                   var script = document.createElement('script');
+                   script.src = "http://maps.googleapis.com/maps/api/js?sensor=false&amp;callback=initialize";
+                   document.body.appendChild(script);
+               });
+
+               function initialize() {
+                   var map;
+                   var bounds = new google.maps.LatLngBounds();
+                   var mapOptions = {
+
+                       mapTypeId: 'roadmap'
+                       <ui:fragment rendered="#{param['earth'] == '1'}">
+                       ,mapTypeId: 'hybrid'
+                       </ui:fragment>
+
+                   };
+
+                   // Display a map on the page
+                   map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+                   map.setTilt(45);
+
+                   // Multiple Markers
+                   var markers = [
+
+
+<ui:repeat value="#{stat.points}" var="p" varStatus="row">
+
+['', #{p.latitude}, #{p.longitude}, 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&amp;chld=#{row.index + 1}|#{stat.accPointColor(p)}|000000'],
+
+</ui:repeat>
+
+
+                   ];
+
+                   var infoWindowContent = [
+
+<ui:repeat value="#{stat.points}" var="p">
+
+['<div class="info_content"><h3>#{stat.ftime(p)}</h3><p>Accuracy = #{p.accuracy}m</p><p>Speed = #{p.speed}</p><p>Battery = #{p.battery}%</p><p>Wifi =  #{p.wifi} </p></div>'],
+
+</ui:repeat>
+
+                   ];
+
+
+                   // Display multiple markers on a map
+                   var infoWindow = new google.maps.InfoWindow(), marker, i;
+
+                   // Loop through our array of markers and place each one on the map
+                   for (i = 0; i &lt; markers.length; i++) {
+                       var position = new google.maps.LatLng(markers[i][1], markers[i][2]);
+                       bounds.extend(position);
+
+                       if (i==0) {
+                           image = 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&amp;chld='+(i+1)+'|FF0000|000000';
+                           marker = new google.maps.Marker({
+                                                               position: position,
+                                                               map: map,
+                                                               animation: google.maps.Animation.BOUNCE,
+                                                               icon: image,
+                                                               title: markers[i][0]
+                                                           });
+
+
+
+                           map.setCenter(marker.getPosition()); // setCenter takes a LatLng object
+
+
+                       } else {
+
+                           image = markers[i][3];
+                           if (i==markers.length-1) {
+                               image = 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&amp;chld='+(i+1)+'|FFAE5E|000000';
+                           }
+
+
+                           marker = new google.maps.Marker({
+                                                               position: position,
+                                                               map: map,
+                                                               icon: image,
+                                                               title: markers[i][0]
+                                                           });
+                       }
+
+                       // Allow each marker to have an info window
+                       google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                           return function () {
+                               infoWindow.setContent(infoWindowContent[i][0]);
+                               infoWindow.open(map, marker);
+                           }
+                       })(marker, i));
+
+                   }
+
+                   map.setZoom(17);
+
+               }
+           </script>
+
+
+    <script>
+    $(document).ready(function(){
+
+        $('#bshowhide').click(function() {
+            if ($('#dbdata').css('visibility') == 'hidden') {
+                $('#dbdata').css('visibility', 'visible');
+                $('#dbdata').show();
+            }
+            else {
+
+            $('#dbdata').css('visibility', 'hidden');
+            $('#dbdata').hide();
+        }
+
+        });
+
+    });
+    </script>
+
+
+
+
+</h:head>
+<h:body>
+
+
+
+         <table>
+              <tr>
+              <td>
+          	    <table>
+          	    <tr>
+          	    <td><div style="width:80px; height: 25px;"><div id="blinkerBatt" class="battery" title="#{stat.currentPoint.battery}%"><div class="level"></div></div></div></td>
+                  <td>&nbsp; &nbsp; <font color="#{stat.batteryColor()}">#{stat.currentPoint.battery}%</font>,</td>
+                  <td>Map Coord: #{stat.points[0].latitude},#{stat.points[0].longitude},</td>
+                  <td><strong><font color="#{stat.accuracyColor()}">Map Accuracy: #{stat.points[0].accuracy}m</font></strong>,</td>
+                  <td>&nbsp; &nbsp; <strong>Latest time: #{stat.ftime(stat.currentPoint)} </strong></td>
+          	    </tr>
+          	    </table>
+              </td>
+              </tr>
+              <tr><td><strong>Latest Wifi:</strong> #{stat.currentPoint.wifi} </td></tr>
+          </table>
+
+    <br />
+
+    <table border="0">
+         <tr>
+        <td><button id="bshowhide">Show/Hide DB data</button></td>
+
+                                                   </tr>
+    </table>
+
+
+    <br />
+
+
+    <table border="1" id="dbdata" style="visibility: hidden; display: none">
+     <tr>
+    <td><strong>accuracy</strong></td>
+    <td><strong>battery</strong></td>
+    <td><strong>accel</strong></td>
+    <td><strong>latitude</strong></td>
+    <td><strong>longitude</strong></td>
+    <td><strong>inserted</strong></td>
+    <td><strong>safeNetwork</strong></td>
+    <td><strong>WiFi</strong></td>
+</tr>
+
+<ui:repeat value="#{stat.lastLines}" var="p">
+    <tr>
+   <td>#{p.accuracy}</td>
+   <td>#{p.battery}</td>
+   <td>#{p.accelerometer}</td>
+   <td><a target="_blank" href="http://maps.google.com/maps?q=#{p.latitude},#{p.longitude}&amp;ll=#{p.latitude},#{p.longitude}&amp;z=16">#{p.latitude}</a></td>
+   <td>#{p.longitude}</td>
+   <td>#{stat.ftime(p)}</td>
+   <td>#{p.safeNetwork}</td>
+   <td>#{p.wifi}</td>
+</tr>
+
+
+</ui:repeat>
+</table>
+
+
+
+          <div id="map_wrapper">
+              <div id="map_canvas" class="mapping"></div>
+          </div>
+
+
+
+
+</h:body>
+</html>
