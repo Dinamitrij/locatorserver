@@ -29,6 +29,9 @@ public class MLSData {
     @Column(name = "longitude", length = LAT_LON_DATA_LEN)
     private String longitude;
 
+    @Column(name = "accuracy")
+    private Double accuracy;
+
     @Column(name = "deviceid", length = 36)
     private String deviceId;
 
@@ -42,18 +45,6 @@ public class MLSData {
     private Integer tag;
 
     public MLSData() {
-    }
-
-    public MLSData(Long id, String latitude, String longitude, String deviceId, String deviceName, Timestamp inserted,
-                   Integer tag) {
-
-        this.id = id;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.deviceId = deviceId;
-        this.deviceName = deviceName;
-        this.inserted = inserted;
-        this.tag = tag;
     }
 
     public Long getId() {
@@ -78,6 +69,14 @@ public class MLSData {
 
     public void setLongitude(String longitude) {
         this.longitude = longitude;
+    }
+
+    public Double getAccuracy() {
+        return accuracy;
+    }
+
+    public void setAccuracy(Double accuracy) {
+        this.accuracy = accuracy;
     }
 
     public String getDeviceId() {
@@ -123,6 +122,9 @@ public class MLSData {
 
         MLSData mlsData = (MLSData) o;
 
+        if (accuracy != null ? !accuracy.equals(mlsData.accuracy) : mlsData.accuracy != null) {
+            return false;
+        }
         if (deviceId != null ? !deviceId.equals(mlsData.deviceId) : mlsData.deviceId != null) {
             return false;
         }
@@ -153,6 +155,7 @@ public class MLSData {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (latitude != null ? latitude.hashCode() : 0);
         result = 31 * result + (longitude != null ? longitude.hashCode() : 0);
+        result = 31 * result + (accuracy != null ? accuracy.hashCode() : 0);
         result = 31 * result + (deviceId != null ? deviceId.hashCode() : 0);
         result = 31 * result + (deviceName != null ? deviceName.hashCode() : 0);
         result = 31 * result + (inserted != null ? inserted.hashCode() : 0);

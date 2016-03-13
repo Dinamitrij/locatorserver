@@ -184,6 +184,7 @@ public class GoogleMapReporter {
 
         String lat = Const.EMPTY;
         String lon = Const.EMPTY;
+        String acc = Const.EMPTY;
 
         MLSData mlsData = new MLSData();
 
@@ -199,27 +200,30 @@ public class GoogleMapReporter {
                 new InputStreamReader((executeResp.getEntity().getContent())));
 
             String output;
-            StringBuffer out = new StringBuffer();
+            StringBuffer dataFromMLSserver = new StringBuffer();
             while ((output = br.readLine()) != null) {
-                out.append(output);
+                dataFromMLSserver.append(output);
             }
 
-            final String mlsResponse = out.toString();
+            final String mlsResponse = dataFromMLSserver.toString();
             log.info("MLS server response: " + mlsResponse);
 
             JSONObject json = (JSONObject) new JSONParser().parse(mlsResponse);
             final JSONObject location = (JSONObject) json.get("location");
             Double dLat = (Double) location.get("lat");
             Double dLon = (Double) location.get("lng");
+            Double accuracy = (Double) json.get("accuracy");
 
             lat = String.valueOf(dLat);
             lon = String.valueOf(dLon);
+            acc = String.valueOf(accuracy);
 
-            log.info("lat =  " + lat);
-            log.info("lon =  " + lon);
+            log.info("lat, lon = " + lat + ", " + lon);
+            log.info("accuracy = " + acc);
 
             mlsData.setLatitude(lat);
             mlsData.setLongitude(lon);
+            mlsData.setAccuracy(accuracy);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -233,7 +237,7 @@ public class GoogleMapReporter {
 
         String staticMapUrl = StringUtils.EMPTY;
         if (!Const.EMPTY.equals(lat) && !Const.ZERO_COORDINATE.equals(lat) &&
-            (minutes == 1 || minutes == 15 || minutes == 30 || minutes == 45)
+            (minutes % 3 == 0)
             ) {
             try {
                 //http://is.gd/create.php?format=simple&url=%s
@@ -260,7 +264,7 @@ public class GoogleMapReporter {
                 return mlsData;
 
             } catch (Exception e) {
-                //e.printStackTrace();
+                e.printStackTrace();
                 log.severe("Cannot get short URL for Google Map reporting. Using long one.");
                 if (!StringUtils.isBlank(staticMapUrl)) {
                     sendGoogleMapReport(deviceId, staticMapUrl, "MLS");
@@ -283,9 +287,11 @@ public class GoogleMapReporter {
 
         final Configuration telegramChatId = deviceConfig.get(ConfigurationKey.SEND_ALERT_ADDRESS_PARAM1);
 
+
+
         final String messageText =
             deviceConfig.get(ConfigurationKey.DEVICE_ALIAS).getValue() +
-            ":Last*" + title + "*points[.](" + staticMapShortenedUrl + ")";
+            ":Last%20*" + title + "*%20points[.](" + staticMapShortenedUrl + ")";
         String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
                                    telegramChatId.getValue(),
                                    messageText);

@@ -43,16 +43,11 @@ public class AlertSender {
 
     public void sendWifiInfo(String deviceId, GPSData gpsData) {
         try {
-            final String alias =
-                Conf.getInstance().deviceValues.get(deviceId).get(ConfigurationKey.ADMIN_ALERT_ADDRESS.DEVICE_ALIAS)
-                    .getValue();
 
             // Reporting the same to Telegram for faster reports (without web page reload):
             final Map<ConfigurationKey, Configuration> globals = Conf.getInstance().globals;
-            StringBuffer sb = new StringBuffer();
-            sb.append("_");
-            sb.append(alias);
-            sb.append("_");
+            StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
+
             sb.append(": \uD83D\uDD0B ");
             sb.append(gpsData.getBattery());
 
@@ -89,16 +84,8 @@ public class AlertSender {
 
     public void sendZoneAlert(String deviceId, String message) {
         try {
-            final String alias =
-                Conf.getInstance().deviceValues.get(deviceId).get(ConfigurationKey.ADMIN_ALERT_ADDRESS.DEVICE_ALIAS)
-                    .getValue();
-
-            // Reporting the same to Telegram for faster reports (without web page reload):
             final Map<ConfigurationKey, Configuration> globals = Conf.getInstance().globals;
-            StringBuffer sb = new StringBuffer();
-            sb.append("_");
-            sb.append(alias);
-            sb.append("_:");
+            StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
 
             if (message.indexOf(ENTERED_ZONE_TEXT_PREFIX) > -1) {
 //                sb.append(" \uD83C\uDFC1 "); // Kletch flag sign
@@ -114,6 +101,35 @@ public class AlertSender {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendLowMLSAccuracyAlert(String deviceId, String message) {
+        try {
+            final Map<ConfigurationKey, Configuration> globals = Conf.getInstance().globals;
+
+            StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
+            sb.append(" \uD83C\uDFAF "); // Mishen - target
+
+            sb.append(message);
+
+            sendAlert(globals.get(ConfigurationKey.ADMIN_ALERT_ADDRESS).getValue(), sb.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private StringBuffer buildMessageBufferWithDeviceAlias(String deviceId) {
+
+        final String alias =
+            Conf.getInstance().deviceValues.get(deviceId).get(ConfigurationKey.ADMIN_ALERT_ADDRESS.DEVICE_ALIAS)
+                .getValue();
+
+        StringBuffer sb = new StringBuffer();
+        sb.append("_");
+        sb.append(alias);
+        sb.append("_:");
+        return sb;
     }
 
 }

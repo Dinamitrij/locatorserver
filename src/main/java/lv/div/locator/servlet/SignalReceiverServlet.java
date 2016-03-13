@@ -39,6 +39,8 @@ import java.util.logging.Logger;
  */
 public class SignalReceiverServlet extends HttpServlet {
 
+    public static final int LOW_MLS_ACCURACY_THRESHOLD = 300;
+
     // Set the timezone:
     // rhc env-set JAVA_OPTS_EXT=" -Duser.timezone=Europe/Riga " --app locator4
 
@@ -214,6 +216,10 @@ public class SignalReceiverServlet extends HttpServlet {
                         savedMLSData.setDeviceId(deviceId);
                         savedMLSData.setDeviceName(getDeviceName(deviceId));
                         mlsDataDao.save(savedMLSData);
+                        if (savedMLSData.getAccuracy() > LOW_MLS_ACCURACY_THRESHOLD) {
+                            alertSender.sendLowMLSAccuracyAlert(deviceId, "Low MLS accuracy detected: "+savedMLSData.getAccuracy());
+                        }
+
                     }
 
                 }
