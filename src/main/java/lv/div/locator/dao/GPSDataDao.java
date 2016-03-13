@@ -11,7 +11,7 @@ import java.util.List;
 @Stateless
 public class GPSDataDao extends GenericDao {
 
-    public List<GPSData> findLastNonSafe(String deviceId, Integer accuracyValue) {
+    public List<GPSData> findLastNonSafe(String deviceId, Long accuracyValue) {
 
         final Query lastNonSafeQuery = entityManager.createNamedQuery("GPSData.findLastNonSafe");
         lastNonSafeQuery.setParameter(Const.DEVICE_ID_PARAMETER_NAME, deviceId);

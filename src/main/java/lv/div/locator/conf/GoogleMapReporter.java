@@ -328,19 +328,7 @@ public class GoogleMapReporter {
     }
 
     public void saveLastReportedGPSPoint(GPSData point, String deviceId) {
-//        em.getTransaction().begin();
-
         try {
-
-//            try {
-//                final State state = findStateByDeviceAndKey(em, deviceId);
-//                if (null!=state) {
-//                    em.remove(state);
-//                }
-//            } catch (Exception e) {
-//                log.warning("ConfigurationKey.LAST_REPORTED_GPS_POINT State was not cleared this time...");
-//            }
-
             stateDao.cleanupLastReportedGPSPoint(deviceId);
 
             State lastGpsState = new State();
@@ -362,7 +350,6 @@ public class GoogleMapReporter {
             log.severe("Cannot save ConfigurationKey.LAST_REPORTED_GPS_POINT!");
             e.printStackTrace();
         }
-//        em.getTransaction().commit();
     }
 
     public List<GPSData> findLastNonSafe(final String deviceId) {
@@ -373,7 +360,7 @@ public class GoogleMapReporter {
             deviceConfig.get(ConfigurationKey.DEVICE_MAP_REPORT_GPS_ACCURACY_THRESHOLD);
 
         try {
-            return gpsDataDao.findLastNonSafe(deviceId, gpsAccuracyThreshold.getIntValue());
+            return gpsDataDao.findLastNonSafe(deviceId, (long) gpsAccuracyThreshold.getIntValue());
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.EMPTY_LIST;
