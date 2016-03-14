@@ -314,10 +314,10 @@ public class GoogleMapReporter {
         try {
 
             final State state = stateDao.findLastReportedByDevice(deviceId);
-            Integer lastIdToFindAfter = 0;
+            Long lastIdToFindAfter = 0L;
 
             if (null != state) {
-                lastIdToFindAfter = state.getIntValue();
+                lastIdToFindAfter = (long) state.getIntValue();
             }
 
             final Map<ConfigurationKey, Configuration> deviceConfig =
@@ -325,7 +325,7 @@ public class GoogleMapReporter {
             final Configuration gpsAccuracyThreshold =
                 deviceConfig.get(ConfigurationKey.DEVICE_MAP_REPORT_GPS_ACCURACY_THRESHOLD);
             return gpsDataDao
-                .findLastNonSafeAfterReported(deviceId, gpsAccuracyThreshold.getIntValue(), lastIdToFindAfter);
+                .findLastNonSafeAfterReported(deviceId, (long) gpsAccuracyThreshold.getIntValue(), lastIdToFindAfter);
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.EMPTY_LIST;
