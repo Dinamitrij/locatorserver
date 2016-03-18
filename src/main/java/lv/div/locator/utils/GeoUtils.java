@@ -16,6 +16,38 @@ public class GeoUtils {
     }
 
     /**
+     * Calculation distance between 2 MLS(GPS) points
+     *
+     * @param lat1
+     * @param lon1
+     * @param lat2
+     * @param lon2
+     *
+     * @return
+     */
+    public static long mlsDistanceInMeters(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) +
+                      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+
+        // To Meters
+        dist = dist * 1.609344 * 1000;
+
+        return (Math.round(dist));
+    }
+
+    private static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    private static double rad2deg(double rad) {
+        return (rad * 180 / Math.PI);
+    }
+
+    /**
      * distance in meters *
      */
     public static float distBetween(double lat1, double lng1, double lat2, double lng2) {

@@ -3,12 +3,15 @@ package lv.div.locator.conf;
 import lv.div.locator.commons.conf.ConfigurationKey;
 import lv.div.locator.commons.conf.Const;
 import lv.div.locator.dao.GPSDataDao;
+import lv.div.locator.dao.MLSDataDao;
 import lv.div.locator.dao.StateDao;
+import lv.div.locator.healthcheck.AlertSender;
 import lv.div.locator.model.Configuration;
 import lv.div.locator.model.GPSData;
 import lv.div.locator.model.MLSData;
 import lv.div.locator.model.State;
 import lv.div.locator.servlet.Statistics;
+import lv.div.locator.utils.GeoUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -23,9 +26,7 @@ import javax.ejb.Stateless;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -36,10 +37,16 @@ public class GoogleMapReporter {
     @EJB
     private ConfigurationManager configurationManager;
 
+    @EJB
+    private MLSDataDao mlsDataDao;
+
     private Logger log = Logger.getLogger(GoogleMapReporter.class.getName());
 
     @EJB
     private GPSDataDao gpsDataDao;
+
+    @EJB
+    private AlertSender alertSender;
 
     @EJB
     private StateDao stateDao;
@@ -175,8 +182,7 @@ public class GoogleMapReporter {
         }
     }
 
-    //TODO: refactor to periodical (each minute report, getting data from database)!!!
-    public MLSData sendMLSReport(String deviceId, String mlsJson) {
+    public void registerNewMLSPoint(String deviceId, String deviceName, String mlsJson) {
 
         HttpClient c = new DefaultHttpClient();
         String line = null;
@@ -224,21 +230,85 @@ public class GoogleMapReporter {
             mlsData.setLatitude(lat);
             mlsData.setLongitude(lon);
             mlsData.setAccuracy(accuracy);
+            mlsData.setDeviceId(deviceId);
+            mlsData.setDeviceName(deviceName);
+            mlsDataDao.save(mlsData);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
 
-        final Date now = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(now);
-        int minutes = calendar.get(Calendar.MINUTE);
+    }
+
+    /**
+     * Checks if the distance between last 2 MLS points are significant enough, - report the location
+     *
+     * @param lastMlsPoint
+     * @param previousMlsPoint
+     *
+     * @return
+     */
+    private boolean reportNeeded(MLSData lastMlsPoint, MLSData previousMlsPoint) {
+        //TODO: Implement distance check! ( <20m. - reporting not needed )
+
+        try {
+
+            log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude()+", "+previousMlsPoint.getLongitude());
+            log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude()+", "+lastMlsPoint.getLongitude());
+
+            final long distance = GeoUtils.mlsDistanceInMeters(Double.valueOf(previousMlsPoint.getLatitude()),
+                                                               Double.valueOf(previousMlsPoint.getLongitude()),
+                                                               Double.valueOf(lastMlsPoint.getLatitude()),
+                                                               Double.valueOf(lastMlsPoint.getLongitude()));
+
+            log.info("Distance between 2 last MLS points is (m) = " + distance);
+
+            return distance > Statistics.GPS_ACCURACY_THRESHOLD;
+
+        } catch (Exception e) {
+            // In case of any convertion error - force report data.
+            log.warning("Error on calculation MLS distance. Force Reporting = TRUE");
+            return true;
+        }
+
+
+    }
+
+    public void sendMLSReport(String deviceId) {
+
+        HttpClient c = new DefaultHttpClient();
+        String line = null;
+        String staticMapShortenedUrl = null;
+
+        final List<MLSData> mlsPoints = mlsDataDao.listTwoLastMLSPoints(deviceId);
+        if (mlsPoints.size() == 2) {
+            if (!reportNeeded(mlsPoints.get(0), mlsPoints.get(1))) {
+                log.info("No significant (less than " + Statistics.GPS_ACCURACY_THRESHOLD +
+                         "m) MLSData location change for deviceId = " + deviceId + ". (skip reporting)");
+
+                alertSender.sendMLSNotChangedAlert(deviceId, "MLS coordinate almost not changed");
+
+                return;
+            }
+        }
+
+        if (mlsPoints.isEmpty()) {
+            log.warning("No MLSData points loaded for deviceId = " + deviceId + ". (skip reporting)");
+            return;
+        }
+
+        // Proceed with MLS reporting:
+
+        String lat = mlsPoints.get(0).getLatitude();
+        String lon = mlsPoints.get(0).getLongitude();
+
+//        final Date now = new Date();
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTime(now);
+//        int minutes = calendar.get(Calendar.MINUTE);
 
         String staticMapUrl = StringUtils.EMPTY;
-        if (!Const.EMPTY.equals(lat) && !Const.ZERO_COORDINATE.equals(lat) &&
-            (minutes % 3 == 0)
-            ) {
+        if (!Const.EMPTY.equals(lat) && !Const.ZERO_COORDINATE.equals(lat)) {
             try {
                 //http://is.gd/create.php?format=simple&url=%s
 
@@ -261,21 +331,21 @@ public class GoogleMapReporter {
                     sendGoogleMapReport(deviceId, staticMapShortenedUrl, "MLS");
                 }
 
-                return mlsData;
+//                return mlsData;
 
             } catch (Exception e) {
                 e.printStackTrace();
                 log.severe("Cannot get short URL for Google Map reporting. Using long one.");
                 if (!StringUtils.isBlank(staticMapUrl)) {
                     sendGoogleMapReport(deviceId, staticMapUrl, "MLS");
-                    return mlsData;
+//                    return mlsData;
                 }
             }
         } else {
-            return mlsData;
+//            return mlsData;
         }
 
-        return null;
+//        return null;
     }
 
     public void sendGoogleMapReport(final String deviceId, final String staticMapShortenedUrl, String title) {
@@ -286,8 +356,6 @@ public class GoogleMapReporter {
             Conf.getInstance().deviceValues.get(deviceId);
 
         final Configuration telegramChatId = deviceConfig.get(ConfigurationKey.SEND_ALERT_ADDRESS_PARAM1);
-
-
 
         final String messageText =
             deviceConfig.get(ConfigurationKey.DEVICE_ALIAS).getValue() +

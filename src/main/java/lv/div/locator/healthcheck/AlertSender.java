@@ -48,7 +48,7 @@ public class AlertSender {
             final Map<ConfigurationKey, Configuration> globals = Conf.getInstance().globals;
             StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
 
-            sb.append(": \uD83D\uDD0B ");
+            sb.append(" \uD83D\uDD0B ");
             sb.append(gpsData.getBattery());
 
             final Long accValue = gpsData.getAccelerometer();
@@ -109,6 +109,22 @@ public class AlertSender {
 
             StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
             sb.append(" \uD83C\uDFAF "); // Mishen - target
+
+            sb.append(message);
+
+            sendAlert(globals.get(ConfigurationKey.ADMIN_ALERT_ADDRESS).getValue(), sb.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMLSNotChangedAlert(String deviceId, String message) {
+        try {
+            final Map<ConfigurationKey, Configuration> globals = Conf.getInstance().globals;
+
+            StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
+            sb.append(" \uD83D\uDC0C "); // Ulitka
 
             sb.append(message);
 

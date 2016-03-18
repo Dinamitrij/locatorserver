@@ -71,16 +71,18 @@ public class ConfigurationManager {
     }
 
     public void loadGlobalConfiguration() {
+        fetchGlobalConfiguration();
+    }
+
+    public void fetchGlobalConfiguration() {
         if (Conf.getInstance().globals.isEmpty()) {
+            stateDao.cleanupAllStates(); // Cleanup all states at startup
             log.info("No configuration entries cached. Loading:");
             final List<Configuration> resultList = configuration.listConfigByDeviceId("*");
             for (Configuration conf : resultList) {
                 log.info("Loaded ::: " + conf.getKey().toString());
                 Conf.getInstance().globals.put(conf.getKey(), conf);
             }
-
-            stateDao.cleanupAllStates(); // Cleanup all states at startup
-
         }
     }
 }

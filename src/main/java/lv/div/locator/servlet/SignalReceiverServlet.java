@@ -84,7 +84,7 @@ public class SignalReceiverServlet extends HttpServlet {
 
         log.info("Http GET: GPS coordinates received: " + latitude + ", " + longitude + ", deicetime=" + deviceTimeMsec);
 
-        log.info("Http GET: MLS data received: " + mlsData);
+//        log.info("Http GET: MLS data received: " + mlsData);
 
         if (!StringUtils.EMPTY.equals(latitude) && !StringUtils.EMPTY.equals(longitude)) {
 
@@ -105,7 +105,7 @@ public class SignalReceiverServlet extends HttpServlet {
 
             if (StringUtils.EMPTY.equals(safeZoneName)) {
 
-                log.warning("@@@ " + getDeviceName(deviceId) + " NOT in safe zone!!! wifiData=" + wifiData);
+                log.warning("### " + getDeviceName(deviceId) + " NOT in safe zone!!! wifiData=" + wifiData);
 
                 final State stateOfDevice = isOutOfSafeZoneAlready(deviceId);
                 if (null == stateOfDevice) { // 1st time exited Safe Zone
@@ -208,19 +208,19 @@ public class SignalReceiverServlet extends HttpServlet {
                     sb.append("],");
                     sb.append("\"fallbacks\": {\"lacf\": true,\"ipf\": true}}");
 
-//                    f.setFiledata(sb.toString());
-//                    em.persist(f);
+//                    MLSData savedMLSData = googleMapReporter.sendMLSReport(deviceId, sb.toString());
+//                    if (null != savedMLSData) { // Saved OK...
+//                        savedMLSData.setDeviceId(deviceId);
+//                        savedMLSData.setDeviceName(getDeviceName(deviceId));
+//                        mlsDataDao.save(savedMLSData);
+//                        if (savedMLSData.getAccuracy() > LOW_MLS_ACCURACY_THRESHOLD) {
+//                            alertSender.sendLowMLSAccuracyAlert(deviceId, "Low MLS accuracy detected: "+savedMLSData.getAccuracy());
+//                        }
+//
+//                    }
 
-                    MLSData savedMLSData = googleMapReporter.sendMLSReport(deviceId, sb.toString());
-                    if (null != savedMLSData) { // Saved OK...
-                        savedMLSData.setDeviceId(deviceId);
-                        savedMLSData.setDeviceName(getDeviceName(deviceId));
-                        mlsDataDao.save(savedMLSData);
-                        if (savedMLSData.getAccuracy() > LOW_MLS_ACCURACY_THRESHOLD) {
-                            alertSender.sendLowMLSAccuracyAlert(deviceId, "Low MLS accuracy detected: "+savedMLSData.getAccuracy());
-                        }
+                    googleMapReporter.registerNewMLSPoint(deviceId, getDeviceName(deviceId), sb.toString());
 
-                    }
 
                 }
 
@@ -275,6 +275,7 @@ public class SignalReceiverServlet extends HttpServlet {
         Integer outOfSafeZonePointsCount = stateOfDevice.getIntValue();
         final Integer newOutOfSafeZonePoints = outOfSafeZonePointsCount + 1;
         stateOfDevice.setIntValue(newOutOfSafeZonePoints);
+        stateOfDevice.setDateValue(new Timestamp((new Date()).getTime()));
         stateDao.update(stateOfDevice); // Simply using already injected bean for common task
 
         final State inZone = isInSafeZoneAlready(deviceId);
@@ -351,6 +352,7 @@ public class SignalReceiverServlet extends HttpServlet {
     private void registerDeviceOutOfSafeZone(String deviceId) {
         State oldState = null;
         try {
+            log.info("lv.div.locator.servlet.SignalReceiverServlet.registerDeviceOutOfSafeZone - calling stateDao.findByDeviceAndKey");
             oldState = stateDao.findByDeviceAndKey(deviceId, ConfigurationKey.IN_SAFE_ZONE);
         } catch (Exception e) {
         }
@@ -383,6 +385,7 @@ public class SignalReceiverServlet extends HttpServlet {
         Integer safeZonePointsCount = stateOfDevice.getIntValue();
         final Integer newSafeZonePoints = safeZonePointsCount + 1;
         stateOfDevice.setIntValue(newSafeZonePoints);
+        stateOfDevice.setDateValue(new Timestamp((new Date()).getTime()));
         stateDao.update(stateOfDevice);
 
         final State outOfZone = isOutOfSafeZoneAlready(stateOfDevice.getDeviceId());
@@ -465,6 +468,9 @@ public class SignalReceiverServlet extends HttpServlet {
     }
 
     private void saveInSafeZoneState(String deviceId, String safeNetwork) {
+        // Cleanup old IN_SAFE_ZONE state, if any:
+        stateDao.deleteByDeviceAndKey(deviceId, ConfigurationKey.IN_SAFE_ZONE);
+
         State safeZoneState = new State();
         safeZoneState.setDeviceId(deviceId);
         safeZoneState.setDeviceName(getDeviceName(deviceId));

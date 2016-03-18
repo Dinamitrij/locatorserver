@@ -142,4 +142,17 @@ public abstract class ConfigurationBased {
         result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "ConfigurationBased{" +
+               "id=" + id +
+               ", deviceId='" + deviceId + '\'' +
+               ", deviceName='" + deviceName + '\'' +
+               ", key=" + key +
+               ", intValue=" + intValue +
+               ", dateValue=" + dateValue +
+               ", value='" + value + '\'' +
+               '}';
+    }
 }

@@ -95,7 +95,38 @@
       	            ]]>
                   </query>
               </named-query>
-       </entity>
+     </entity>
+
+    <entity class="lv.div.locator.model.MLSData">
+              <named-query name="MLSData.listLastMLSPointsByDeviceId">
+                  <description>
+                      <![CDATA[
+                          Lists 2 last points to check distance (should we report the change)
+                      ]]>
+                  </description>
+                  <query>
+                      <![CDATA[
+
+                       SELECT m FROM MLSData m WHERE m.deviceId = :deviceId ORDER BY m.inserted DESC
+
+      	            ]]>
+                  </query>
+              </named-query>
+              <named-native-query name="MLSData.truncate">
+                  <description>
+                      <![CDATA[
+                          Cleanup MLSData table
+                      ]]>
+                  </description>
+                  <query>
+                      <![CDATA[
+
+                        truncate table mlsdata;
+
+      	            ]]>
+                  </query>
+              </named-native-query>
+     </entity>
 
     <entity class="lv.div.locator.model.GPSData">
         <named-query name="GPSData.findLastNonSafe">
@@ -221,6 +252,20 @@
                 <![CDATA[
 
                  SELECT s from State s WHERE s.deviceId = :deviceId AND s.key = :ckey
+
+	            ]]>
+            </query>
+        </named-query>
+        <named-query name="State.listByKey">
+            <description>
+                <![CDATA[
+                    Lists the States by Key
+                ]]>
+            </description>
+            <query>
+                <![CDATA[
+
+                 SELECT s from State s WHERE s.key = :ckey
 
 	            ]]>
             </query>
