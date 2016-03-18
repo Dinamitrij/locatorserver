@@ -256,10 +256,7 @@ public class GoogleMapReporter {
             log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude()+", "+previousMlsPoint.getLongitude());
             log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude()+", "+lastMlsPoint.getLongitude());
 
-            final long distance = GeoUtils.mlsDistanceInMeters(Double.valueOf(previousMlsPoint.getLatitude()),
-                                                               Double.valueOf(previousMlsPoint.getLongitude()),
-                                                               Double.valueOf(lastMlsPoint.getLatitude()),
-                                                               Double.valueOf(lastMlsPoint.getLongitude()));
+            final long distance = calculateDistanceDiff(lastMlsPoint, previousMlsPoint);
 
             log.info("Distance between 2 last MLS points is (m) = " + distance);
 
@@ -274,6 +271,19 @@ public class GoogleMapReporter {
 
     }
 
+    /**
+     * Calculating the actual distance diff between 2 MLS points
+     * @param lastMlsPoint
+     * @param previousMlsPoint
+     * @return
+     */
+    private long calculateDistanceDiff(MLSData lastMlsPoint, MLSData previousMlsPoint) {
+        return GeoUtils.mlsDistanceInMeters(Double.valueOf(previousMlsPoint.getLatitude()),
+                                            Double.valueOf(previousMlsPoint.getLongitude()),
+                                            Double.valueOf(lastMlsPoint.getLatitude()),
+                                            Double.valueOf(lastMlsPoint.getLongitude()));
+    }
+
     public void sendMLSReport(String deviceId) {
 
         HttpClient c = new DefaultHttpClient();
@@ -286,7 +296,8 @@ public class GoogleMapReporter {
                 log.info("No significant (less than " + Statistics.GPS_ACCURACY_THRESHOLD +
                          "m) MLSData location change for deviceId = " + deviceId + ". (skip reporting)");
 
-                alertSender.sendMLSNotChangedAlert(deviceId, "MLS coordinate almost not changed");
+                final long distanceDiff = calculateDistanceDiff(mlsPoints.get(0), mlsPoints.get(1));
+                alertSender.sendMLSNotChangedAlert(deviceId, "MLS coordinate almost not changed ("+distanceDiff+"m)");
 
                 return;
             }
