@@ -11,7 +11,6 @@ import lv.div.locator.dao.StateDao;
 import lv.div.locator.healthcheck.AlertSender;
 import lv.div.locator.model.Configuration;
 import lv.div.locator.model.GPSData;
-import lv.div.locator.model.MLSData;
 import lv.div.locator.model.State;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -318,32 +317,37 @@ public class SignalReceiverServlet extends HttpServlet {
                 oldNetworkName = netName[1];
             }
             String messageText =
-                getDeviceName(deviceId) + " " + String.format(leftSafeZoneMessage.getValue(), oldNetworkName);
-            try {
-                messageText = URLEncoder.encode(messageText, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                messageText = "Left_safe_zone";
-            }
+                //getDeviceName(deviceId) + " " +
+                String.format(leftSafeZoneMessage.getValue(), oldNetworkName);
+//            try {
+//                messageText = URLEncoder.encode(messageText, "UTF-8");
+//            } catch (UnsupportedEncodingException e) {
+//                messageText = "Left_safe_zone";
+//            }
 
-            alertSender.sendZoneAlert(stateOfDevice.getDeviceId(), AlertSender.LEFT_ZONE_TEXT_PREFIX + oldNetworkName);
+            alertSender.sendZoneAdminAlert(stateOfDevice.getDeviceId(),
+                                           AlertSender.LEFT_ZONE_TEXT_PREFIX + oldNetworkName);
 
-            String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
-                                       telegramChatId.getValue(),
-                                       messageText);
 
-            HttpClient c = new DefaultHttpClient();
-            final HttpGet httpGet = new HttpGet(url);
-            try {
-                HttpResponse r = c.execute(httpGet);
+            alertSender.sendZoneUserAlert(stateOfDevice.getDeviceId(), messageText);
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(r.getEntity().getContent()));
-                String line;
-
-                while ((line = rd.readLine()) != null) {
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
+//                                       telegramChatId.getValue(),
+//                                       messageText);
+//
+//            HttpClient c = new DefaultHttpClient();
+//            final HttpGet httpGet = new HttpGet(url);
+//            try {
+//                HttpResponse r = c.execute(httpGet);
+//
+//                BufferedReader rd = new BufferedReader(new InputStreamReader(r.getEntity().getContent()));
+//                String line;
+//
+//                while ((line = rd.readLine()) != null) {
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
         }
 
@@ -420,13 +424,13 @@ public class SignalReceiverServlet extends HttpServlet {
             if (netName.length > 1) {
                 safeNetworkName = netName[1];
             }
-            String messageText = getDeviceName(stateOfDevice.getDeviceId()) + StringUtils.SPACE +
+            String messageText = //getDeviceName(stateOfDevice.getDeviceId()) + StringUtils.SPACE +
                                  String.format(safeZoneMessage.getValue(), safeNetworkName);
-            try {
-                messageText = URLEncoder.encode(messageText, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                messageText = "Entered_safe_zone";
-            }
+//            try {
+//                messageText = URLEncoder.encode(messageText, "UTF-8");
+//            } catch (UnsupportedEncodingException e) {
+//                messageText = "Entered_safe_zone";
+//            }
 
 //            final GPSData fakeGpsData = new GPSData();
 //            fakeGpsData.setBattery(0L);
@@ -435,28 +439,31 @@ public class SignalReceiverServlet extends HttpServlet {
 //            alertSender.sendWifiInfo(stateOfDevice.getDeviceId(), fakeGpsData);
 
             alertSender
-                .sendZoneAlert(stateOfDevice.getDeviceId(), AlertSender.ENTERED_ZONE_TEXT_PREFIX + safeNetworkName);
+                .sendZoneAdminAlert(stateOfDevice.getDeviceId(), AlertSender.ENTERED_ZONE_TEXT_PREFIX + safeNetworkName);
 
-            String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
-                                       telegramChatId.getValue(),
-                                       messageText);
+//            String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
+//                                       telegramChatId.getValue(),
+//                                       messageText);
 
-            HttpClient c = new DefaultHttpClient();
-            final HttpGet httpGet = new HttpGet(url);
-            try {
-                HttpResponse r = c.execute(httpGet);
+             alertSender.sendZoneUserAlert(stateOfDevice.getDeviceId(), messageText);
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(r.getEntity().getContent()));
-                String line;
+//            HttpClient c = new DefaultHttpClient();
+//            final HttpGet httpGet = new HttpGet(url);
+//            try {
+//                HttpResponse r = c.execute(httpGet);
+//
+//                BufferedReader rd = new BufferedReader(new InputStreamReader(r.getEntity().getContent()));
+//                String line;
+//
+//                while ((line = rd.readLine()) != null) {
+//                }
+//
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
-                while ((line = rd.readLine()) != null) {
-                }
 
-                googleMapReporter.reportGoogleMap(stateOfDevice.getDeviceId());
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            googleMapReporter.reportGoogleMap(stateOfDevice.getDeviceId());
 
         }
 

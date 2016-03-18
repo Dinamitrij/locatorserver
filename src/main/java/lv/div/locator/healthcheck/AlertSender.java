@@ -82,7 +82,7 @@ public class AlertSender {
         }
     }
 
-    public void sendZoneAlert(String deviceId, String message) {
+    public void sendZoneAdminAlert(String deviceId, String message) {
         try {
             final Map<ConfigurationKey, Configuration> globals = Conf.getInstance().globals;
             StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
@@ -97,6 +97,34 @@ public class AlertSender {
             sb.append(message);
 
             sendAlert(globals.get(ConfigurationKey.ADMIN_ALERT_ADDRESS).getValue(), sb.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendZoneUserAlert(String deviceId, String message) {
+        try {
+            final Map<ConfigurationKey, Configuration> globals = Conf.getInstance().globals;
+            StringBuffer sb = buildMessageBufferWithDeviceAlias(deviceId);
+
+            if (message.indexOf(ENTERED_ZONE_TEXT_PREFIX) > -1) {
+                sb.append(" \uD83C\uDFE0 "); // Domik
+            } else {
+                sb.append(" \uD83D\uDEA7 "); // Yellow construction zone
+            }
+
+            sb.append(message);
+
+            final Map<ConfigurationKey, Configuration> config =
+                Conf.getInstance().deviceValues.get(deviceId);
+
+            final String urlMask = config.get(ConfigurationKey.DEVICE_SEND_ALERT_ADDRESS).getValue();
+            final String textToSend = sb.toString();
+
+            String finalUrl = String.format(urlMask, URLEncoder.encode(textToSend, "UTF-8"));
+
+            sendAlert(urlMask, textToSend);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -138,9 +166,7 @@ public class AlertSender {
     private StringBuffer buildMessageBufferWithDeviceAlias(String deviceId) {
 
         final String alias =
-            Conf.getInstance().deviceValues.get(deviceId).get(ConfigurationKey.ADMIN_ALERT_ADDRESS.DEVICE_ALIAS)
-                .getValue();
-
+            Conf.getInstance().deviceValues.get(deviceId).get(ConfigurationKey.DEVICE_ALIAS).getValue();
         StringBuffer sb = new StringBuffer();
         sb.append("_");
         sb.append(alias);
