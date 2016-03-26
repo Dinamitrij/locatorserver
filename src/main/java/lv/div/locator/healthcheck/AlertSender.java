@@ -123,7 +123,8 @@ public class AlertSender {
             final Map<ConfigurationKey, Configuration> config =
                 Conf.getInstance().deviceValues.get(deviceId);
 
-            final String urlMask = config.get(ConfigurationKey.DEVICE_SEND_ALERT_ADDRESS).getValue();
+            final String urlMask = processAlertFlag(config.get(ConfigurationKey.DEVICE_SEND_ALERT_ADDRESS).getValue());
+
             final String textToSend = sb.toString();
 
             String finalUrl = String.format(urlMask, URLEncoder.encode(textToSend, "UTF-8"));
@@ -133,6 +134,15 @@ public class AlertSender {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Adds/removes alert/silence parameter from reporting query, if applicable
+     * @param urlAddress non-processed URL address
+     * @return processed URL address
+     */
+    private String processAlertFlag(String urlAddress) {
+        return StringUtils.remove(urlAddress, "disable_notification=true&");
     }
 
     public void sendLowMLSAccuracyAlert(String deviceId, String message) {
