@@ -13,21 +13,13 @@ import lv.div.locator.model.Configuration;
 import lv.div.locator.model.GPSData;
 import lv.div.locator.model.State;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import javax.ejb.EJB;
 import javax.persistence.NoResultException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
@@ -37,8 +29,6 @@ import java.util.logging.Logger;
  * Main Entry point for mobile locator clients
  */
 public class SignalReceiverServlet extends HttpServlet {
-
-    public static final int LOW_MLS_ACCURACY_THRESHOLD = 300;
 
     // Set the timezone:
     // rhc env-set JAVA_OPTS_EXT=" -Duser.timezone=Europe/Riga " --app locator4
@@ -63,6 +53,16 @@ public class SignalReceiverServlet extends HttpServlet {
     @EJB
     private GoogleMapReporter googleMapReporter;
 
+    /**
+     * Main signal receiver endpoint.
+     * Here we're handling all requests from mobile client devices.
+     *
+     * @param req
+     * @param resp
+     *
+     * @throws ServletException
+     * @throws IOException
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
@@ -81,9 +81,8 @@ public class SignalReceiverServlet extends HttpServlet {
         String deviceTimeMsec = req.getParameter(Const.DEVICETIME_FIELD);
         String line = StringUtils.EMPTY;
 
-        log.info("Http GET: GPS coordinates received: " + latitude + ", " + longitude + ", deicetime=" + deviceTimeMsec);
-
-//        log.info("Http GET: MLS data received: " + mlsData);
+        log.info(
+            "Http GET: GPS coordinates received: " + latitude + ", " + longitude + ", deicetime=" + deviceTimeMsec);
 
         if (!StringUtils.EMPTY.equals(latitude) && !StringUtils.EMPTY.equals(longitude)) {
 
@@ -158,7 +157,6 @@ public class SignalReceiverServlet extends HttpServlet {
                 gpsDataDao.save(gpsData);
 
                 if (!StringUtils.isBlank(mlsData)) {
-//                    LogFile f = new LogFile();
                     StringBuffer sb = new StringBuffer();
 
                     final String[] mainMLSDataParts = StringUtils.split(mlsData, Const.HASH_SEPARATOR);
@@ -207,24 +205,11 @@ public class SignalReceiverServlet extends HttpServlet {
                     sb.append("],");
                     sb.append("\"fallbacks\": {\"lacf\": true,\"ipf\": true}}");
 
-//                    MLSData savedMLSData = googleMapReporter.sendMLSReport(deviceId, sb.toString());
-//                    if (null != savedMLSData) { // Saved OK...
-//                        savedMLSData.setDeviceId(deviceId);
-//                        savedMLSData.setDeviceName(getDeviceName(deviceId));
-//                        mlsDataDao.save(savedMLSData);
-//                        if (savedMLSData.getAccuracy() > LOW_MLS_ACCURACY_THRESHOLD) {
-//                            alertSender.sendLowMLSAccuracyAlert(deviceId, "Low MLS accuracy detected: "+savedMLSData.getAccuracy());
-//                        }
-//
-//                    }
-
                     googleMapReporter.registerNewMLSPoint(deviceId, getDeviceName(deviceId), sb.toString());
-
 
                 }
 
                 alertSender.sendWifiInfo(deviceId, gpsData);
-                //alertSender.sendAlert(globals.get(ConfigurationKey.ADMIN_ALERT_ADDRESS).getValue(), sb.toString());
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -316,38 +301,11 @@ public class SignalReceiverServlet extends HttpServlet {
             if (netName.length > 1) {
                 oldNetworkName = netName[1];
             }
-            String messageText =
-                //getDeviceName(deviceId) + " " +
-                String.format(leftSafeZoneMessage.getValue(), oldNetworkName);
-//            try {
-//                messageText = URLEncoder.encode(messageText, "UTF-8");
-//            } catch (UnsupportedEncodingException e) {
-//                messageText = "Left_safe_zone";
-//            }
-
+            String messageText = String.format(leftSafeZoneMessage.getValue(), oldNetworkName);
             alertSender.sendZoneAdminAlert(stateOfDevice.getDeviceId(),
                                            AlertSender.LEFT_ZONE_TEXT_PREFIX + oldNetworkName);
 
-
             alertSender.sendZoneUserAlert(stateOfDevice.getDeviceId(), messageText);
-
-//            String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
-//                                       telegramChatId.getValue(),
-//                                       messageText);
-//
-//            HttpClient c = new DefaultHttpClient();
-//            final HttpGet httpGet = new HttpGet(url);
-//            try {
-//                HttpResponse r = c.execute(httpGet);
-//
-//                BufferedReader rd = new BufferedReader(new InputStreamReader(r.getEntity().getContent()));
-//                String line;
-//
-//                while ((line = rd.readLine()) != null) {
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
 
         }
 
@@ -356,7 +314,8 @@ public class SignalReceiverServlet extends HttpServlet {
     private void registerDeviceOutOfSafeZone(String deviceId) {
         State oldState = null;
         try {
-            log.info("lv.div.locator.servlet.SignalReceiverServlet.registerDeviceOutOfSafeZone - calling stateDao.findByDeviceAndKey");
+            log.info(
+                "lv.div.locator.servlet.SignalReceiverServlet.registerDeviceOutOfSafeZone - calling stateDao.findByDeviceAndKey");
             oldState = stateDao.findByDeviceAndKey(deviceId, ConfigurationKey.IN_SAFE_ZONE);
         } catch (Exception e) {
         }
@@ -379,7 +338,6 @@ public class SignalReceiverServlet extends HttpServlet {
         outOfSafeZoneState.setValue(oldWifiNetwork);
         stateDao.save(outOfSafeZoneState);
     }
-
 
     private void updateDeviceInSafeZone(State stateOfDevice, String safeNetwork) {
 
@@ -425,44 +383,11 @@ public class SignalReceiverServlet extends HttpServlet {
                 safeNetworkName = netName[1];
             }
             String messageText = //getDeviceName(stateOfDevice.getDeviceId()) + StringUtils.SPACE +
-                                 String.format(safeZoneMessage.getValue(), safeNetworkName);
-//            try {
-//                messageText = URLEncoder.encode(messageText, "UTF-8");
-//            } catch (UnsupportedEncodingException e) {
-//                messageText = "Entered_safe_zone";
-//            }
-
-//            final GPSData fakeGpsData = new GPSData();
-//            fakeGpsData.setBattery(0L);
-//            fakeGpsData.setAccelerometer(0L);
-//            fakeGpsData.setWifi(AlertSender.ENTERED_ZONE_TEXT_PREFIX +safeNetworkName);
-//            alertSender.sendWifiInfo(stateOfDevice.getDeviceId(), fakeGpsData);
-
+                String.format(safeZoneMessage.getValue(), safeNetworkName);
             alertSender
-                .sendZoneAdminAlert(stateOfDevice.getDeviceId(), AlertSender.ENTERED_ZONE_TEXT_PREFIX + safeNetworkName);
-
-//            String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
-//                                       telegramChatId.getValue(),
-//                                       messageText);
-
-             alertSender.sendZoneUserAlert(stateOfDevice.getDeviceId(), messageText);
-
-//            HttpClient c = new DefaultHttpClient();
-//            final HttpGet httpGet = new HttpGet(url);
-//            try {
-//                HttpResponse r = c.execute(httpGet);
-//
-//                BufferedReader rd = new BufferedReader(new InputStreamReader(r.getEntity().getContent()));
-//                String line;
-//
-//                while ((line = rd.readLine()) != null) {
-//                }
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-
-
+                .sendZoneAdminAlert(stateOfDevice.getDeviceId(),
+                                    AlertSender.ENTERED_ZONE_TEXT_PREFIX + safeNetworkName);
+            alertSender.sendZoneUserAlert(stateOfDevice.getDeviceId(), messageText);
             googleMapReporter.reportGoogleMap(stateOfDevice.getDeviceId());
 
         }
@@ -498,13 +423,6 @@ public class SignalReceiverServlet extends HttpServlet {
         log.info("ConfigurationKey.MAP_REPORTED state saved");
     }
 
-//    private void deleteInSafeZoneState(String deviceId) {
-//        final Query deleteQuery = em.createQuery("DELETE from State c WHERE c.deviceId = :deviceId AND c.key = :key");
-//        deleteQuery.setParameter(Const.DEVICE_ID_PARAMETER_NAME, deviceId);
-//        deleteQuery.setParameter(Const.KEY_PARAMETER_NAME, ConfigurationKey.IN_SAFE_ZONE);
-//        deleteQuery.executeUpdate();
-//    }
-
     private void deleteDeviceState(String deviceId, final ConfigurationKey state) {
         stateDao.deleteByDeviceAndKey(deviceId, state);
         log.info("Device state deleted! " + state.toString());
@@ -535,7 +453,7 @@ public class SignalReceiverServlet extends HttpServlet {
     }
 
     private State isInSafeZoneAlready(String deviceId) {
-        //Esli pereskochil iz 1 safe zoni v druguju... Not handled!
+        //If "jumped" from 1 safe zone to another... Not handled!
         try {
             final State state = stateDao.findByDeviceAndKey(deviceId, ConfigurationKey.IN_SAFE_ZONE);
             return state;
@@ -546,7 +464,7 @@ public class SignalReceiverServlet extends HttpServlet {
     }
 
     private State isOutOfSafeZoneAlready(String deviceId) {
-        // Esli pereskochil iz 1 safe zoni v druguju... Not handled!
+        //If "jumped" from 1 safe zone to another... Not handled!
         try {
             final State state = stateDao.findByDeviceAndKey(deviceId, ConfigurationKey.OUT_OF_SAFE_ZONE);
             return state;

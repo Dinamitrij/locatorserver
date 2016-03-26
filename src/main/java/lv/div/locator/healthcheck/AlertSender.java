@@ -15,6 +15,10 @@ import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.util.Map;
 
+/**
+ * Main alert sending bean.
+ * Used for sending the notifications about the client device states.
+ */
 @Stateless
 public class AlertSender {
 

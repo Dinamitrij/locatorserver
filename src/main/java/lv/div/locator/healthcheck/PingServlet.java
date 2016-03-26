@@ -17,6 +17,10 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
+/**
+ * Servlet for sending the "pings".
+ * Used mostly for debug purposes, to see the device is still up and running.
+ */
 public class PingServlet extends HttpServlet {
 
     // Set the timezone:
@@ -41,8 +45,6 @@ public class PingServlet extends HttpServlet {
         if (StringUtils.isBlank(pingText)) {
             pingText = "Ping.";
         }
-
-//        loadDeviceSpecificConfigIfNeeded(deviceId);
 
         configurationManager.loadDeviceSpecificConfigIfNeeded(deviceId);
 

@@ -21,7 +21,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * Sending reports for MLS location points
+ * Sending reports for MLS location points.
+ * This mechanism is supposed to be called by CRON task.
  */
 @Stateless
 public class MLSReportSender {
@@ -62,17 +63,9 @@ public class MLSReportSender {
                 allStates.stream().collect(Collectors.groupingBy(a -> a.getDeviceId()));
 
             for (String deviceId : allStatesById.keySet()) {
-                // Work with downloaded states on the App side. Reduce database calls:
+                // Let's work with downloaded states on the App side and reduce database calls count:
 
                 final List<State> states = allStatesById.get(deviceId);
-//                for (State state : states) {
-//                    log.info("State = " + state.toString());
-//                }
-
-//                log.info("Working with deviceId = " + deviceId + ", total devices count = " + allStatesById.keySet().size());
-
-//                final State mlsReportedPoint = stateDao.findByDeviceAndKey(deviceId, ConfigurationKey.MLS_REPORTED);
-
                 final State mlsReportedPoint =
                     allStatesById.get(deviceId).stream().filter(a -> ConfigurationKey.MLS_REPORTED.equals(a.getKey()))
                         .findFirst().orElse(null);
@@ -88,8 +81,6 @@ public class MLSReportSender {
 
                     final Timestamp mlsWasReportedAtTS = mlsReportedPoint.getDateValue();
                     final DateTime mlsWasReportedAt = new DateTime(mlsWasReportedAtTS.getTime());
-//                    log.info("mlsWasReportedAt = " + mlsWasReportedAt);
-
                     final Seconds seconds = Seconds.secondsBetween(now, mlsWasReportedAt);
                     final int secondsFromLastReport = Math.abs(seconds.getSeconds());
 
@@ -117,8 +108,6 @@ public class MLSReportSender {
                     }
 
                     if (null != deviceInSafeZone) { // if device is in SAFE zone...
-
-//                        log.info("Device in SAFE ZONE is found! for " + mlsReportedPoint.getDeviceName());
                         log.info("secondsFromLastReport = " + secondsFromLastReport);
                         log.info("mlsReportSafeZoneEachSec = " + mlsReportSafeZoneEachSec);
                         log.info("secondsFromLastSignalReceived = " + secondsFromLastSignalReceived);
@@ -131,8 +120,6 @@ public class MLSReportSender {
                             stateDao.saveNewMlsReportedState(deviceId);
                         }
                     } else {
-
-//                        log.info("Device NOT IN SAFE zone for " + mlsReportedPoint.getDeviceName());
                         log.info("secondsFromLastReport = " + secondsFromLastReport);
                         log.info("mlsReportOutOfSafeZoneEachSec = " + mlsReportOutOfSafeZoneEachSec);
                         log.info("secondsFromLastSignalReceived = " + secondsFromLastSignalReceived);
