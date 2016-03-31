@@ -77,7 +77,7 @@ public class MLSReportSender {
                     final Timestamp mlsWasReportedAtTS = mlsReportedPoint.getDateValue();
                     final DateTime mlsWasReportedAt = new DateTime(mlsWasReportedAtTS.getTime());
                     final Seconds seconds = Seconds.secondsBetween(now, mlsWasReportedAt);
-                    final int secondsFromLastReport = Math.abs(seconds.getSeconds());
+                    final int secondsFromLastMLSReport = Math.abs(seconds.getSeconds());
 
                     // IN_SAFE_ZONE & OUT_OF_SAFE_ZONE flags are constantly updated, when APP is online.
                     // Long time after these flags update, means APP if switched off, so -
@@ -89,38 +89,39 @@ public class MLSReportSender {
                         allStatesById.get(deviceId).stream().filter(a -> ConfigurationKey.OUT_OF_SAFE_ZONE.equals(a.getKey()))
                             .findFirst().orElse(null);
 
-                    int secondsFromLastSignalReceived = 0;
+                    int secondsFromLastSignalInSafeZoneReceived = 0;
+                    int secondsFromLastSignalOutOfSafeZoneReceived = 0;
                     if (null != deviceInSafeZone) {
                         log.info("MLS: Device in SafeZone - " + deviceAlias);
                         final DateTime lastSignalWhenInSafeZone = new DateTime(deviceInSafeZone.getDateValue());
                         final Seconds s = Seconds.secondsBetween(now, lastSignalWhenInSafeZone);
-                        secondsFromLastSignalReceived = Math.abs(s.getSeconds());
+                        secondsFromLastSignalInSafeZoneReceived = Math.abs(s.getSeconds());
                     } else if (null != deviceOutOfSafeZone) {
                         log.info("MLS: Device NOT in SafeZone " + deviceAlias);
                         final DateTime lastSignalWhenOutOfSafeZone = new DateTime(deviceOutOfSafeZone.getDateValue());
                         final Seconds s = Seconds.secondsBetween(now, lastSignalWhenOutOfSafeZone);
-                        secondsFromLastSignalReceived = Math.abs(s.getSeconds());
+                        secondsFromLastSignalOutOfSafeZoneReceived = Math.abs(s.getSeconds());
                     }
 
                     if (null != deviceInSafeZone) { // if device is in SAFE zone...
-                        log.info("secondsFromLastReport = " + secondsFromLastReport);
+                        log.info("secondsFromLastMLSReport = " + secondsFromLastMLSReport);
                         log.info("mlsReportSafeZoneEachSec = " + mlsReportSafeZoneEachSec);
-                        log.info("secondsFromLastSignalReceived = " + secondsFromLastSignalReceived);
+                        log.info("secondsFromLastSignalInSafeZoneReceived = " + secondsFromLastSignalInSafeZoneReceived);
 
                         // Do not report OLD states (mlsReportSafeZoneEachSec*2)
-                        if (secondsFromLastReport > mlsReportSafeZoneEachSec && secondsFromLastSignalReceived < (mlsReportSafeZoneEachSec*2)) {
+                        if (secondsFromLastMLSReport > mlsReportSafeZoneEachSec && secondsFromLastSignalInSafeZoneReceived < (mlsReportSafeZoneEachSec*2)) {
                             log.info("Reporting MLS location (in safe zone) for " + mlsReportedPoint.getDeviceName());
                             mapReporter.sendMLSReport(deviceId);
                             stateDao.deleteOldMlsReportedState(deviceId);
                             stateDao.saveNewMlsReportedState(deviceId);
                         }
                     } else {
-                        log.info("secondsFromLastReport = " + secondsFromLastReport);
+                        log.info("secondsFromLastMLSReport = " + secondsFromLastMLSReport);
                         log.info("mlsReportOutOfSafeZoneEachSec = " + mlsReportOutOfSafeZoneEachSec);
-                        log.info("secondsFromLastSignalReceived = " + secondsFromLastSignalReceived);
+                        log.info("secondsFromLastSignalOutOfSafeZoneReceived = " + secondsFromLastSignalOutOfSafeZoneReceived);
 
                         // Device NOT IN SAFE zone!
-                        if (secondsFromLastReport > mlsReportOutOfSafeZoneEachSec && secondsFromLastSignalReceived < (mlsReportOutOfSafeZoneEachSec*2)) {
+                        if (secondsFromLastMLSReport > mlsReportOutOfSafeZoneEachSec && secondsFromLastSignalOutOfSafeZoneReceived < (mlsReportOutOfSafeZoneEachSec*2)) {
                             log.info(
                                 "Reporting MLS location (out of safe zone) for " + mlsReportedPoint.getDeviceName());
                             mapReporter.sendMLSReport(deviceId);
