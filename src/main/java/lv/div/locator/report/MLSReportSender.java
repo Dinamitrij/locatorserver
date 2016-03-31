@@ -12,11 +12,8 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -58,26 +55,24 @@ public class MLSReportSender {
                 return;
             }
 
-
             final Map<String, List<State>> allStatesById =
                 allStates.stream().collect(Collectors.groupingBy(a -> a.getDeviceId()));
 
             for (String deviceId : allStatesById.keySet()) {
                 // Let's work with downloaded states on the App side and reduce database calls count:
 
-                final List<State> states = allStatesById.get(deviceId);
+                final String deviceAlias = Conf.getInstance().deviceValues.get(deviceId).get(ConfigurationKey.DEVICE_ALIAS).getValue();
+
                 final State mlsReportedPoint =
                     allStatesById.get(deviceId).stream().filter(a -> ConfigurationKey.MLS_REPORTED.equals(a.getKey()))
                         .findFirst().orElse(null);
 
                 if (null == mlsReportedPoint) { // MLS not reported yet. Send anyway
-                    log.info("MLS: Reporting MLS location (initial) for " + deviceId);
+                    log.info("MLS: Reporting MLS location (initial) for device \"" + deviceAlias + "\"");
                     mapReporter.sendMLSReport(deviceId);
                     stateDao.deleteOldMlsReportedState(deviceId);
                     stateDao.saveNewMlsReportedState(deviceId);
                 } else {
-
-                    log.info("MLS: Trying to report MLS location for " + deviceId);
 
                     final Timestamp mlsWasReportedAtTS = mlsReportedPoint.getDateValue();
                     final DateTime mlsWasReportedAt = new DateTime(mlsWasReportedAtTS.getTime());
@@ -96,12 +91,12 @@ public class MLSReportSender {
 
                     int secondsFromLastSignalReceived = 0;
                     if (null != deviceInSafeZone) {
-                        log.info("MLS: Device in SafeZone " + deviceId);
+                        log.info("MLS: Device in SafeZone - " + deviceAlias);
                         final DateTime lastSignalWhenInSafeZone = new DateTime(deviceInSafeZone.getDateValue());
                         final Seconds s = Seconds.secondsBetween(now, lastSignalWhenInSafeZone);
                         secondsFromLastSignalReceived = Math.abs(s.getSeconds());
                     } else if (null != deviceOutOfSafeZone) {
-                        log.info("MLS: Device NOT in SafeZone " + deviceId);
+                        log.info("MLS: Device NOT in SafeZone " + deviceAlias);
                         final DateTime lastSignalWhenOutOfSafeZone = new DateTime(deviceOutOfSafeZone.getDateValue());
                         final Seconds s = Seconds.secondsBetween(now, lastSignalWhenOutOfSafeZone);
                         secondsFromLastSignalReceived = Math.abs(s.getSeconds());
