@@ -102,12 +102,13 @@
                   <description>
                       <![CDATA[
                           Lists 2 last points to check distance (should we report the change)
+                          (filtering out "Ashburn lake" effect, - it has accuracy 25000m)
                       ]]>
                   </description>
                   <query>
                       <![CDATA[
 
-                       SELECT m FROM MLSData m WHERE m.deviceId = :deviceId ORDER BY m.inserted DESC
+                       SELECT m FROM MLSData m WHERE m.deviceId = :deviceId AND m.accuracy < 1000 ORDER BY m.inserted DESC
 
       	            ]]>
                   </query>

@@ -250,23 +250,24 @@ public class GoogleMapReporter {
      */
     private boolean reportNeeded(MLSData lastMlsPoint, MLSData previousMlsPoint) {
         //TODO: Implement distance check! ( <20m. - reporting not needed )
+        return true;
 
-        try {
-
-            log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude()+", "+previousMlsPoint.getLongitude());
-            log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude()+", "+lastMlsPoint.getLongitude());
-
-            final long distance = calculateDistanceDiff(lastMlsPoint, previousMlsPoint);
-
-            log.info("Distance between 2 last MLS points is (m) = " + distance);
-
-            return distance > Statistics.GPS_ACCURACY_THRESHOLD;
-
-        } catch (Exception e) {
-            // In case of any convertion error - force report data.
-            log.warning("Error on calculation MLS distance. Force Reporting = TRUE");
-            return true;
-        }
+//        try {
+//
+//            log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude()+", "+previousMlsPoint.getLongitude());
+//            log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude()+", "+lastMlsPoint.getLongitude());
+//
+//            final long distance = calculateDistanceDiff(lastMlsPoint, previousMlsPoint);
+//
+//            log.info("Distance between 2 last MLS points is (m) = " + distance);
+//
+//            return distance > Statistics.GPS_ACCURACY_THRESHOLD;
+//
+//        } catch (Exception e) {
+//            // In case of any convertion error - force report data.
+//            log.warning("Error on calculation MLS distance. Force Reporting = TRUE");
+//            return true;
+//        }
 
 
     }
