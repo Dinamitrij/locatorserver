@@ -1,3 +1,3 @@
-# locatorserver
-Server side code for the Locator project.
-Backend engine.
+# Locator Server
+Backend engine for the "Locator" Android project.
+
