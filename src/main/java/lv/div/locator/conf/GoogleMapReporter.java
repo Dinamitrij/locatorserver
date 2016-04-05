@@ -318,44 +318,50 @@ public class GoogleMapReporter {
         String lat = lastMLSpoint.getLatitude();
         String lon = lastMLSpoint.getLongitude();
         final long mlsTime = lastMLSpoint.getInserted().getTime();
-        log.info("mlsTime = " + lastMLSpoint.getInserted());
+//        log.info("mlsTime = " + lastMLSpoint.getInserted());
         final Date now = new Date();
         StringBuffer timeAgo = new StringBuffer();
 
         long hoursAgo = 0;
         hoursAgo = TimeUnit.MILLISECONDS.toHours(now.getTime() - mlsTime);
-        log.info("hoursAgo = " + hoursAgo);
+//        log.info("hoursAgo = " + hoursAgo);
         if (hoursAgo > 0) {
             timeAgo.append(hoursAgo);
-            timeAgo.append("h%20");
+            timeAgo.append("h ");
         }
         long minutesAgo = 0;
         minutesAgo = TimeUnit.MILLISECONDS.toMinutes(now.getTime() - mlsTime);
-        log.info("minutesAgo = " + minutesAgo);
+//        log.info("minutesAgo = " + minutesAgo);
 
         if (hoursAgo > 0) {
             minutesAgo = minutesAgo - (60 * hoursAgo);
         }
 
         if (minutesAgo > 0) {
-            timeAgo.append(String.format("%02d%n", minutesAgo));
-            timeAgo.append("m%20");
+            timeAgo.append(String.format("%02d", minutesAgo));
+            timeAgo.append("m ");
         } else if (hoursAgo > 0) {
-            timeAgo.append("00m%20");
+            timeAgo.append("00m ");
         }
         long secondsAgo = 0;
         secondsAgo = TimeUnit.MILLISECONDS.toSeconds(now.getTime() - mlsTime);
-        log.info("secondsAgo = " + secondsAgo);
+//        log.info("secondsAgo = " + secondsAgo);
 
         if (minutesAgo > 0) {
             secondsAgo = secondsAgo - (60 * minutesAgo);
         }
 
         if (secondsAgo > 0) {
-            timeAgo.append(String.format("%02d%n", secondsAgo));
-            timeAgo.append("s%20");
+
+            if (minutesAgo > 0) {
+                timeAgo.append(String.format("%02d", secondsAgo));
+            } else {
+                timeAgo.append(secondsAgo);
+            }
+
+            timeAgo.append("s ");
         } else if (minutesAgo > 0) {
-            timeAgo.append("00s%20");
+            timeAgo.append("00s ");
         }
 
         if (timeAgo.length() > 0) {
@@ -381,6 +387,8 @@ public class GoogleMapReporter {
                 while ((line = rd.readLine()) != null) {
                     staticMapShortenedUrl = line;
                 }
+
+//                log.info("SHORT URL = "+staticMapShortenedUrl);
 
                 if (!StringUtils.isBlank(staticMapShortenedUrl)) {
                     sendMLSMapReport(deviceId, staticMapShortenedUrl, timeAgo.toString());
@@ -443,7 +451,10 @@ public class GoogleMapReporter {
 
         final String messageText =
             deviceConfig.get(ConfigurationKey.DEVICE_ALIAS).getValue() +
-            ":%20*MLS*%20("+timeAgo+"%20)[.](" + staticMapShortenedUrl + ")";
+            ":%20*MLS*%20("+ StringUtils.replace(timeAgo, StringUtils.SPACE, "%20") +")[.](" + staticMapShortenedUrl + ")";
+
+//        log.info("URL messageText = "+messageText);
+
         String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
                                    telegramChatId.getValue(),
                                    messageText);
