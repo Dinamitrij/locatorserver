@@ -408,9 +408,17 @@ public class GoogleMapReporter {
 
         final Configuration telegramChatId = deviceConfig.get(ConfigurationKey.SEND_ALERT_ADDRESS_PARAM1);
 
+        String zoneSign = "";
+        final State safeZone = isInSafeZoneAlready(deviceId);
+        if (null!=safeZone) {
+            zoneSign = "\uD83C\uDFE0"; // Domik
+        } else {
+            zoneSign = "\uD83D\uDEA7"; // Yellow construction zone
+        }
+
         final String messageText =
             deviceConfig.get(ConfigurationKey.DEVICE_ALIAS).getValue() +
-            ":Last%20*" + title + "*%20points[.](" + staticMapShortenedUrl + ")";
+            ":%20"+zoneSign+"%20*" + title + "*[.](" + staticMapShortenedUrl + ")";
         String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
                                    telegramChatId.getValue(),
                                    messageText);
@@ -437,9 +445,17 @@ public class GoogleMapReporter {
 
         final Configuration telegramChatId = deviceConfig.get(ConfigurationKey.SEND_ALERT_ADDRESS_PARAM1);
 
+        String zoneSign = "";
+        final State safeZone = isInSafeZoneAlready(deviceId);
+        if (null!=safeZone) {
+            zoneSign = "\uD83C\uDFE0"; // Domik
+        } else {
+            zoneSign = "\uD83D\uDEA7"; // Yellow construction zone
+        }
+
         final String messageText =
             deviceConfig.get(ConfigurationKey.DEVICE_ALIAS).getValue() +
-            ":%20*MLS*%20(" + StringUtils.replace(timeAgo, StringUtils.SPACE, "%20") + ")[.](" + staticMapShortenedUrl + ")";
+            ":%20"+zoneSign+"%20*MLS*%20(" + StringUtils.replace(timeAgo, StringUtils.SPACE, "%20") + ")[.](" + staticMapShortenedUrl + ")";
 
         String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
                                    telegramChatId.getValue(),
@@ -522,5 +538,31 @@ public class GoogleMapReporter {
         }
 
     }
+
+
+    //TODO: Remove code duplication for theis method
+    private State isInSafeZoneAlready(String deviceId) {
+        //If "jumped" from 1 safe zone to another... Not handled!
+        try {
+            final State state = stateDao.findByDeviceAndKey(deviceId, ConfigurationKey.IN_SAFE_ZONE);
+            return state;
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    //TODO: Remove code duplication for theis method
+    private State isOutOfSafeZoneAlready(String deviceId) {
+        //If "jumped" from 1 safe zone to another... Not handled!
+        try {
+            final State state = stateDao.findByDeviceAndKey(deviceId, ConfigurationKey.OUT_OF_SAFE_ZONE);
+            return state;
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
 
 }
