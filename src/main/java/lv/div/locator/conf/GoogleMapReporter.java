@@ -102,7 +102,9 @@ public class GoogleMapReporter {
                 //http://is.gd/create.php?format=simple&url=%s
 
                 staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
-                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
+                // Make url shortener configurable
+                //HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
+                HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
 
                 HttpResponse r = c.execute(suHttpGet);
 
@@ -161,7 +163,8 @@ public class GoogleMapReporter {
                     "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:red|label:x|" + lat + "," +
                     lon,
                     "UTF-8");
-                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
+//                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
+                HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
 
                 HttpResponse r = c.execute(suHttpGet);
 
@@ -376,7 +379,8 @@ public class GoogleMapReporter {
                     "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:green|label:x|" + lat + "," +
                     lon,
                     "UTF-8");
-                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
+//                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
+                HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
 
                 HttpResponse r = c.execute(suHttpGet);
 

@@ -1,0 +1,7 @@
+###################################
+
+# filter everything for the following...
+target
+
+# ... except the .gitignore...
+!.gitignore
