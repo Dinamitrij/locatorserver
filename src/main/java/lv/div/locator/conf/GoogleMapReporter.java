@@ -10,6 +10,8 @@ import lv.div.locator.model.Configuration;
 import lv.div.locator.model.GPSData;
 import lv.div.locator.model.MLSData;
 import lv.div.locator.model.State;
+import lv.div.locator.model.mlsfences.MlsFence;
+import lv.div.locator.model.mlsfences.SafeAreas;
 import lv.div.locator.servlet.Statistics;
 import lv.div.locator.utils.GeoUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -90,6 +92,8 @@ public class GoogleMapReporter {
                 sb.append(",");
                 sb.append(lastPoint.getLongitude());
 
+                appendSafeAreasToMapUrl(deviceId, sb);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -128,6 +132,32 @@ public class GoogleMapReporter {
         }
     }
 
+    /**
+     * Append safe areas as Google Maps Paths to generated maps url
+     *
+     * @param deviceId
+     * @param sb       String Buffer with map, containing url data
+     */
+    private void appendSafeAreasToMapUrl(String deviceId, StringBuffer sb) {
+        configurationManager.loadDeviceSpecificConfigIfNeeded(deviceId);
+
+        final Map<ConfigurationKey, Configuration> deviceConfig =
+            Conf.getInstance().deviceValues.get(deviceId);
+
+        final Configuration mlsFence = deviceConfig.get(ConfigurationKey.DEVICE_MLS_FENCES);
+        final SafeAreas safeAreasContainer = mlsFence.getSafeAreas();
+        final List<MlsFence> mlsFences = safeAreasContainer.getMlsFences();
+
+        for (MlsFence fence : mlsFences) {
+            sb.append("&path=fillcolor:");
+            sb.append(fence.getFillcolor());
+            sb.append("|color:");
+            sb.append(fence.getColor());
+            sb.append("|enc:");
+            sb.append(fence.getEnc());
+        }
+    }
+
     public void reportGoogleMap(final String deviceId) {
 
         final List<GPSData> resultList = findLastNonSafe(deviceId);
@@ -158,11 +188,18 @@ public class GoogleMapReporter {
             try {
                 //http://is.gd/create.php?format=simple&url=%s
 
-                staticMapUrl = URLEncoder.encode(
-                    "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
-                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:red|label:x|" + lat + "," +
-                    lon,
-                    "UTF-8");
+                String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
+                                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:red|label:x|" + lat + "," +
+                                    lon;
+
+                //staticMapUrl = URLEncoder.encode(mapTemplate, "UTF-8");
+                StringBuffer sb = new StringBuffer(mapTemplate);
+
+                appendSafeAreasToMapUrl(deviceId, sb);
+
+                staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
+
+
 //                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
                 HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
 
@@ -374,11 +411,17 @@ public class GoogleMapReporter {
             try {
                 //http://is.gd/create.php?format=simple&url=%s
 
-                staticMapUrl = URLEncoder.encode(
-                    "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
-                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:green|label:x|" + lat + "," +
-                    lon,
-                    "UTF-8");
+                String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
+                                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:green|label:x|" + lat + "," +
+                                    lon;
+
+                //staticMapUrl = URLEncoder.encode(mapTemplate, "UTF-8");
+                StringBuffer sb = new StringBuffer(mapTemplate);
+
+                appendSafeAreasToMapUrl(deviceId, sb);
+
+                staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
+
 //                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
                 HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
 
