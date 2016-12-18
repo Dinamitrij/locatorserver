@@ -31,6 +31,17 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>Where Am I Servlet</servlet-name>
+        <servlet-class>lv.div.locator.servlet.WhereAmIServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Where Am I Servlet</servlet-name>
+        <url-pattern>/whereami</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>BSSID Receiver</servlet-name>
         <servlet-class>lv.div.locator.servlet.BSSIDReceiverServlet</servlet-class>
         <load-on-startup>1</load-on-startup>

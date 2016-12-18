@@ -520,4 +520,31 @@ public class PolyUtil {
         }
         result.append(Character.toChars((int) (v + 63)));
     }
+
+    public static List < LatLng > prepareCircleFromRadius(LatLng center, double radius, int nbOfPoints) {
+
+           List < LatLng > polygonz = new ArrayList < > ();
+
+           double EARTH_RADIUS = 6371000;
+           double d = radius / EARTH_RADIUS;
+           double lat1 = Math.toRadians(center.getLatitude());
+           double lng1 = Math.toRadians(center.getLongitude());
+
+           double a = 0;
+           double step = 360.0 / (double) nbOfPoints;
+           for (int i = 0; i <= nbOfPoints; i++) {
+               double tc = Math.toRadians(a);
+               double lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(tc));
+               double lng2 = lng1 + Math.atan2(Math.sin(tc) * Math.sin(d) * Math.cos(lat1),
+                   Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+               LatLng point = new LatLng(Math.toDegrees(lat2), Math.toDegrees(lng2));
+
+               polygonz.add(point);
+
+               a += step;
+           }
+
+           return polygonz;
+       }
+
 }

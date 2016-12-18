@@ -11,6 +11,10 @@ public class MlsFence {
 
     @JsonProperty("name")
     public String name;
+    @JsonProperty("latitude")
+    public Double latitude;
+    @JsonProperty("longitude")
+    public Double longitude;
     @JsonProperty("radiusInMeters")
     public Integer radiusInMeters;
     @JsonProperty("numberOfPoints")
@@ -30,6 +34,22 @@ public class MlsFence {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public Integer getRadiusInMeters() {

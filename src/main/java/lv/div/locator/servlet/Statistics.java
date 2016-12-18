@@ -58,18 +58,7 @@ public class Statistics implements Serializable {
         } else {
             currentPoint = buildEmptyPoint();
         }
-
-//        Query query = null;
-//        if (null != all && all > 0) {
-//            query = em.createNamedQuery("GPSData.listStatisticsDEBUG");
-//        } else {
-//            query = em.createNamedQuery("GPSData.listStatistics");
-//        }
-
         if (null != device) {
-//            query.setParameter(1, device);
-//            query.setParameter(2, limit);
-
             @SuppressWarnings("unchecked")
             List<GPSData> items = new ArrayList<GPSData>();
             final List resultList = gpsDataDao.listRawStatisticsDataArray(device, limit);
