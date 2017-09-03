@@ -4,5 +4,8 @@
            xsi:schemaLocation="
       http://www.jboss.com/xml/ns/javaee
       http://www.jboss.org/j2ee/schema/jboss-web_5_1.xsd">
-    <context-root>/</context-root>
+
+    <context-root>/locator</context-root>
+    <virtual-host>locator-host</virtual-host>
+
 </jboss-web>

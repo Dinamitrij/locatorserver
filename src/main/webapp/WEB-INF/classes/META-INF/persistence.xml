@@ -6,8 +6,8 @@
     <persistence-unit name="persistenceUnit" transaction-type="JTA">
         <!--Local:-->
         <!--<jta-data-source>java:/MySqlDS</jta-data-source>-->
-        <!--OpenShift:-->
-        <jta-data-source>java:jboss/datasources/MySQLDS</jta-data-source>
+        <!--VPS:-->
+        <jta-data-source>java:/LocatorDS</jta-data-source>
         <properties>
             <!-- Properties for Hibernate -->
             <!--<property name="hibernate.hbm2ddl.auto" value="create-drop" />-->
