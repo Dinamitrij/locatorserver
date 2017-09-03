@@ -28,6 +28,7 @@ import javax.ejb.Stateless;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -163,8 +164,16 @@ public class GoogleMapReporter {
         final List<GPSData> resultList = findLastNonSafe(deviceId);
         if (null != resultList && resultList.size() > 0) {
 
+            final Date currentTime = new Date();
+
             for (GPSData gpsData : resultList) {
-                if (!Const.ZERO_COORDINATE.equals(gpsData.getLatitude())) {
+
+                // GPS data older than 30 min - is not relevant. Skip it.
+                final Timestamp inserted = gpsData.getInserted();
+                final long diff = currentTime.getTime() - inserted.getTime();
+                long minutesSince = TimeUnit.MILLISECONDS.toMinutes(diff);
+
+                if (minutesSince < 30 && !Const.ZERO_COORDINATE.equals(gpsData.getLatitude())) {
                     sendReportForOnePoint(deviceId, gpsData);
                     break; // Only 1 point is needed
                 }
