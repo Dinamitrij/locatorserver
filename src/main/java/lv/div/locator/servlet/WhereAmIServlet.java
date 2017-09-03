@@ -13,6 +13,7 @@ import lv.div.locator.model.mlsfences.MlsFence;
 import lv.div.locator.model.mlsfences.SafeAreas;
 import lv.div.locator.model.mlsfences.polyline.LatLng;
 import lv.div.locator.model.mlsfences.polyline.PolyUtil;
+import lv.div.locator.mqueue.ZoneDataMQSender;
 import org.apache.commons.lang3.StringUtils;
 import javax.ejb.EJB;
 import javax.inject.Inject;
@@ -41,6 +42,9 @@ public class WhereAmIServlet extends HttpServlet {
 
     @EJB
     private MLSDataDao mlsDataDao;
+
+    @EJB
+    private ZoneDataMQSender zoneDataMQSender;
 
     @Inject
     private ConfigurationManager configurationManager;
@@ -113,6 +117,10 @@ public class WhereAmIServlet extends HttpServlet {
             sb.append(" NOT in safe zone");
             alertSender.sendAlert(globals.get(ConfigurationKey.ADMIN_ALERT_ADDRESS).getValue(), sb.toString());
         }
+
+
+        sb.append(" +RabbitMQ!");
+        zoneDataMQSender.sendData("MLSFences", deviceId, deviceId, sb.toString());
 
 
 

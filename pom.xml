@@ -145,6 +145,11 @@
             <version>${jackson.version}</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>4.0.0</version>
+        </dependency>
 
         <!-- persistence -->
         <dependency>
