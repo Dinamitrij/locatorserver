@@ -81,8 +81,9 @@ public class SignalReceiverServlet extends HttpServlet {
         String deviceTimeMsec = req.getParameter(Const.DEVICETIME_FIELD);
         String line = StringUtils.EMPTY;
 
-        log.info(
-            "Http GET: GPS coordinates received: " + latitude + ", " + longitude + ", deicetime=" + deviceTimeMsec);
+        log.info("Http GET: GPS coordinates received: " + latitude + ", " + longitude + ", deicetime=" + deviceTimeMsec);
+        log.info("Http GET: MLS data received: " + mlsData);
+
 
         if (!StringUtils.EMPTY.equals(latitude) && !StringUtils.EMPTY.equals(longitude)) {
 
@@ -185,28 +186,35 @@ public class SignalReceiverServlet extends HttpServlet {
                     sb.append(",\"timingAdvance\": 1");
                     sb.append("}],");
 
-                    final String[] wifiMLSDataPart =
-                        StringUtils.split(mainMLSDataParts[1], Const.WIFI_VALUES_SEPARATOR);
 
                     sb.append("\"wifiAccessPoints\": [");
-                    String valuesDivider = Const.EMPTY;
-                    for (String wifi : wifiMLSDataPart) {
 
-                        final String[] wifiNetworkData = wifi.split(Const.COMMA_SEPARATOR);
-                        sb.append(valuesDivider);
-                        sb.append("{\"macAddress\": \"");
-                        sb.append(wifiNetworkData[0]);
-                        sb.append("\", \"signalStrength\": \"");
-                        sb.append(wifiNetworkData[1]);
-                        sb.append("\"}");
+                    if (mainMLSDataParts.length>1) {  // is there "mainMLSDataParts[1]" at all??
 
-                        valuesDivider = Const.COMMA_SEPARATOR;
+                        final String[] wifiMLSDataPart =
+                            StringUtils.split(mainMLSDataParts[1], Const.WIFI_VALUES_SEPARATOR);
+
+                        String valuesDivider = Const.EMPTY;
+                        for (String wifi : wifiMLSDataPart) {
+
+                            final String[] wifiNetworkData = wifi.split(Const.COMMA_SEPARATOR);
+                            sb.append(valuesDivider);
+                            sb.append("{\"macAddress\": \"");
+                            sb.append(wifiNetworkData[0]);
+                            sb.append("\", \"signalStrength\": \"");
+                            sb.append(wifiNetworkData[1]);
+                            sb.append("\"}");
+
+                            valuesDivider = Const.COMMA_SEPARATOR;
+                        }
+
+                        sb.append("],");
+                        sb.append("\"fallbacks\": {\"lacf\": true,\"ipf\": true}}");
+
+                        googleMapReporter.registerNewMLSPoint(deviceId, getDeviceName(deviceId), sb.toString());
+                    }  else {
+                        log.warning("mainMLSDataParts LENGTH < 2! Skip `googleMapReporter.registerNewMLSPoint`");
                     }
-                    sb.append("],");
-                    sb.append("\"fallbacks\": {\"lacf\": true,\"ipf\": true}}");
-
-                    googleMapReporter.registerNewMLSPoint(deviceId, getDeviceName(deviceId), sb.toString());
-
                 }
 
                 alertSender.sendWifiInfo(deviceId, gpsData);
