@@ -2,6 +2,8 @@
 
 # filter everything for the following...
 target
+.idea
+src/main/mqueue
 
 # ... except the .gitignore...
 !.gitignore

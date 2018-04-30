@@ -164,16 +164,24 @@ public class GoogleMapReporter {
         final List<GPSData> resultList = findLastNonSafe(deviceId);
         if (null != resultList && resultList.size() > 0) {
 
-            final Date currentTime = new Date();
+//            final Date currentTime = new Date();
+//
+//            for (GPSData gpsData : resultList) {
+//
+//                // GPS data older than 30 min - is not relevant. Skip it.
+//                final Timestamp inserted = gpsData.getInserted();
+//                final long diff = currentTime.getTime() - inserted.getTime();
+//                long minutesSince = TimeUnit.MILLISECONDS.toMinutes(diff);
+//
+//                if (minutesSince < 30 && !Const.ZERO_COORDINATE.equals(gpsData.getLatitude())) {
+//                    sendReportForOnePoint(deviceId, gpsData);
+//                    break; // Only 1 point is needed
+//                }
+//            }
+//
 
             for (GPSData gpsData : resultList) {
-
-                // GPS data older than 30 min - is not relevant. Skip it.
-                final Timestamp inserted = gpsData.getInserted();
-                final long diff = currentTime.getTime() - inserted.getTime();
-                long minutesSince = TimeUnit.MILLISECONDS.toMinutes(diff);
-
-                if (minutesSince < 30 && !Const.ZERO_COORDINATE.equals(gpsData.getLatitude())) {
+                if (!Const.ZERO_COORDINATE.equals(gpsData.getLatitude())) {
                     sendReportForOnePoint(deviceId, gpsData);
                     break; // Only 1 point is needed
                 }

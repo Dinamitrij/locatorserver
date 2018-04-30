@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.SequenceGenerator;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -16,8 +17,9 @@ import java.util.Date;
 public abstract class ConfigurationBased {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @SequenceGenerator(name = "configuration_id_seq", sequenceName = "configuration_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "configuration_id_seq")
+    @Column(name = "id", updatable = false)
     private Long id;
 
     @Column(name = "deviceid", length = 36)

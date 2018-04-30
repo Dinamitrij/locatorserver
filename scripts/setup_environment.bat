@@ -9,7 +9,7 @@ rem ----------------------------------------------------------------------------
 rem set GITEXE_PATH=C:\Apps\WinGit\bin\git.exe
 set GITEXE_PATH=C:\Apps\Git\bin\git.exe
 set SSHEXE_PATH=C:\Apps\Git\bin\ssh.exe
-set MYSQLEXE_PATH=c:\xampp\mysql\bin\mysql
-set MYSQLDUMP_PATH=c:\xampp\mysql\bin\mysqldump
+set MYSQLEXE_PATH=c:\MariaDB\bin\mysql
+set MYSQLDUMP_PATH=c:\MariaDB\bin\mysqldump
 set WORKDIR=%PROJECT_DIR%\work
 set WARDEPLOYDIR=%PROJECT_DIR%\wardeploy4

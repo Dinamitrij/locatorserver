@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -21,8 +22,9 @@ public class GPSData {
     public static final int LAT_LON_DATA_LEN = 16;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @SequenceGenerator(name = "gpsdata_id_seq", sequenceName = "gpsdata_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gpsdata_id_seq")
+    @Column(name = "id", updatable = false)
     private Long id;
 
     @Column(name = "latitude", length = LAT_LON_DATA_LEN)

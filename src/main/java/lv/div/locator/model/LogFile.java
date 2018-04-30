@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -18,8 +19,9 @@ import java.util.Date;
 public class LogFile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @SequenceGenerator(name = "logfile_id_seq", sequenceName = "logfile_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "logfile_id_seq")
+    @Column(name = "id", updatable = false)
     private Long id;
 
     @Column(name = "deviceid", length = 36)
