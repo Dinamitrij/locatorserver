@@ -23,7 +23,7 @@ public class MLSData {
     @SequenceGenerator(name = "mlsdata_id_seq", sequenceName = "mlsdata_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mlsdata_id_seq")
     @Column(name = "id", updatable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "latitude", length = LAT_LON_DATA_LEN)
     private String latitude;
@@ -49,11 +49,11 @@ public class MLSData {
     public MLSData() {
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

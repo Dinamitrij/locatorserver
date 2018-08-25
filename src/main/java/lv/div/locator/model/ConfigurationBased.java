@@ -20,7 +20,7 @@ public abstract class ConfigurationBased {
     @SequenceGenerator(name = "configuration_id_seq", sequenceName = "configuration_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "configuration_id_seq")
     @Column(name = "id", updatable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "deviceid", length = 36)
     private String deviceId;
@@ -41,11 +41,11 @@ public abstract class ConfigurationBased {
     @Column(name = "strvalue", length = 2048)
     private String value;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

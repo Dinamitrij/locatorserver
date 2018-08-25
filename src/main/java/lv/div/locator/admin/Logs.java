@@ -132,7 +132,7 @@ public class Logs implements Serializable {
         emptyPoint.setLatitude(Const.ZERO_VALUE);
         emptyPoint.setLongitude(Const.ZERO_VALUE);
         emptyPoint.setDeviceId(Const.ZERO_VALUE);
-        emptyPoint.setId(Const.ZERO_LONG_VALUE);
+        emptyPoint.setId(0);
         emptyPoint.setInserted(new Timestamp(Const.ZERO_LONG_VALUE));
         emptyPoint.setWifi("No data");
         emptyPoint.setSafeNetwork("default");

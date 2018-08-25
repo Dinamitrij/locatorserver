@@ -25,7 +25,7 @@ public class GPSData {
     @SequenceGenerator(name = "gpsdata_id_seq", sequenceName = "gpsdata_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gpsdata_id_seq")
     @Column(name = "id", updatable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "latitude", length = LAT_LON_DATA_LEN)
     private String latitude;
@@ -69,7 +69,7 @@ public class GPSData {
     public GPSData() {
     }
 
-    public GPSData(Long id, String latitude, String longitude, String speed, String wifi, Long accuracy,
+    public GPSData(Integer id, String latitude, String longitude, String speed, String wifi, Long accuracy,
                    String safeNetwork, Long battery, String deviceId, String deviceName, Timestamp inserted,
                    Long accelerometer, Integer tag) {
 
@@ -88,11 +88,11 @@ public class GPSData {
         this.tag = tag;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

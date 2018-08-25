@@ -22,7 +22,7 @@ public class LogFile {
     @SequenceGenerator(name = "logfile_id_seq", sequenceName = "logfile_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "logfile_id_seq")
     @Column(name = "id", updatable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "deviceid", length = 36)
     private String deviceId;
@@ -43,11 +43,11 @@ public class LogFile {
     @Column(name = "tag")
     private Integer tag;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

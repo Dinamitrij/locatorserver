@@ -23,7 +23,7 @@ public class BSSIDdata {
     @SequenceGenerator(name = "bssiddata_id_seq", sequenceName = "bssiddata_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bssiddata_id_seq")
     @Column(name = "id", updatable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "deviceid", length = 36)
     private String deviceId;
@@ -52,11 +52,11 @@ public class BSSIDdata {
     @Column(name = "tag")
     private Integer tag;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

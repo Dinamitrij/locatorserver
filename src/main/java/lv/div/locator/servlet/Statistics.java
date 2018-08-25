@@ -65,7 +65,7 @@ public class Statistics implements Serializable {
 
             for (Object line : resultList) { // We need this conversion here, due to NATIVE query:
                 final Object[] singleLine = (Object[]) line;
-                items.add(new GPSData((Long) singleLine[0],
+                items.add(new GPSData((Integer) singleLine[0],
                                       (String) singleLine[7],
                                       (String) singleLine[8],
                                       (String) singleLine[10],
@@ -101,7 +101,7 @@ public class Statistics implements Serializable {
         emptyPoint.setLatitude(Const.ZERO_VALUE);
         emptyPoint.setLongitude(Const.ZERO_VALUE);
         emptyPoint.setDeviceId(Const.ZERO_VALUE);
-        emptyPoint.setId(0L);
+        emptyPoint.setId(0);
         emptyPoint.setInserted(new Timestamp(0));
         emptyPoint.setWifi("No data");
         emptyPoint.setSafeNetwork("default");
