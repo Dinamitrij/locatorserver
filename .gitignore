@@ -3,7 +3,7 @@
 # filter everything for the following...
 target
 .idea
-src/main/java/lv/div/locator/mqueue/ZoneDataMQSender.java
+ZoneDataMQSender.java
 
 # ... except the .gitignore...
 !.gitignore
