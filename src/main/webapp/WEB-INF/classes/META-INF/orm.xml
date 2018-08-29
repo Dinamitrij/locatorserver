@@ -14,7 +14,7 @@
                <query>
                    <![CDATA[
 
-                    SELECT DISTINCT CONCAT(trim(wifiname), ' (', bssid, ')'), bssid FROM bssiddata WHERE accuracy<30 AND wifiname<>'' AND deviceid = ? ORDER BY 1
+                    SELECT DISTINCT trim(wifiname), bssid FROM bssiddata WHERE accuracy<30 AND wifiname<>'' AND deviceid = ? ORDER BY 1
 
    	            ]]>
                </query>
@@ -185,7 +185,7 @@
 
                         SELECT g1.* FROM gpsdata g1 INNER JOIN
                                        (SELECT max(inserted) as MaxPostDate, latitude, longitude
-                                        FROM gpsdata GROUP BY concat (latitude, longitude)) g2
+                                        FROM gpsdata GROUP BY latitude || longitude) g2
                                        ON g1.latitude = g2.latitude  AND g1.inserted = g2.MaxPostDate
                         WHERE day(g1.inserted)=day(NOW()) AND g1.deviceid = ? AND g1.accuracy>0
                         ORDER BY g1.inserted desc LIMIT ?
@@ -204,7 +204,7 @@
 
                         SELECT g1.* FROM gpsdata g1 INNER JOIN
                                        (SELECT max(inserted) as MaxPostDate, latitude, longitude
-                                        FROM gpsdata GROUP BY concat (latitude, longitude)) g2
+                                        FROM gpsdata GROUP BY latitude || longitude) g2
                                        ON g1.latitude = g2.latitude  AND g1.inserted = g2.MaxPostDate
                         WHERE g1.deviceid = ? AND g1.accuracy>0
                         ORDER BY g1.inserted desc LIMIT ?

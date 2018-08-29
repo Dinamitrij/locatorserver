@@ -109,9 +109,20 @@ public class Admin implements Serializable {
             Object[] result = (Object[]) it.next(); // Iterating through array object
             bssids.add(new BSSIDnetwork((String) result[0], (String) result[1]));
         }
-        int a = 1 + 1;
+
     }
 
+//    public void buildData() {
+//        final List<BSSIDdata> networks = bssidDao.listNetworks(getSelectedDevice().getDeviceId());
+//        Iterator it = networks.iterator();
+//        bssids.clear();
+//        while (it.hasNext()) {
+//            Object[] result = (Object[]) it.next(); // Iterating through array object
+//            bssids.add(new BSSIDnetwork((String) result[0], (String) result[1]));
+//        }
+//        int a = 1 + 1;
+//    }
+//
     public void loadDevices() {
         devices = configuration.loadDevices();
         setSelectedDevice(devices.get(0));

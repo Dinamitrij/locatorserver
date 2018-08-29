@@ -5,27 +5,20 @@
 
     <persistence-unit name="persistenceUnit" transaction-type="JTA">
         <!--<jta-data-source>java:/LocatorDS</jta-data-source>-->
-        <!--<jta-data-source>LocatorDS</jta-data-source>-->
         <properties>
             <!-- Properties for Hibernate -->
             <!--<property name="hibernate.hbm2ddl.auto" value="create-drop" />-->
             <!--<property name="hibernate.hbm2ddl.auto" value="create" />-->
-
             <property name="hibernate.hbm2ddl.auto" value="validate"/>
-
             <!--<property name="hibernate.flushMode" value="FLUSH_AUTO" />-->
             <property name="hibernate.flushMode" value="FLUSH_ALWAYS" />
 
             <!--<property name="hibernate.show_sql" value="false"/>-->
             <!--<property name="hibernate.format_sql" value="true"/>-->
-            <!--<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL94Dialect" />-->
-
-            <property name="hibernate.dialect" value="org.hibernate.dialect.SQLiteDialect" />
-            <property name="javax.persistence.jdbc.driver" value="org.sqlite.JDBC" />
-            <property name="javax.persistence.jdbc.url" value="jdbc:sqlite:c:/delete/locator.db" />
-            <property name="javax.persistence.jdbc.user" value="" />
-            <property name="javax.persistence.jdbc.password" value="" />
+            <property name="hibernate.dialect" value="lv.div.locator.model.dialect.LocatorSQLiteDialect" />
             <property name="hibernate.connection.charSet" value="UTF-8" />
+
+            <!--See project-defaults.yml for more settings-->
 
         </properties>
     </persistence-unit>

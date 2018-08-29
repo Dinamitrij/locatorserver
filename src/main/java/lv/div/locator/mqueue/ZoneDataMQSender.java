@@ -26,10 +26,10 @@ public class ZoneDataMQSender extends GenericQueue {
     @PostConstruct
     public void init() {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("hare.rmq.cloudamqp.com");
-        factory.setVirtualHost("wnxnqcww");
-        factory.setUsername("wnxnqcww");
-        factory.setPassword("45W6cfWoc5KusFUDg-BUeWOQH-bi3n-s");
+        factory.setHost("12312");
+        factory.setVirtualHost("12312");
+        factory.setUsername("12312");
+        factory.setPassword("12312");
         factory.setAutomaticRecoveryEnabled(true);
         //Recommended settings
         factory.setRequestedHeartbeat(30);
