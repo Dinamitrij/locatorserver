@@ -1,0 +1,16 @@
+swarm:
+  datasources:
+    data-sources:
+      ### [datasource]
+      LocatorDS:
+        driver-name: sqlite
+        connection-url: jdbc:sqlite:c:/delete/locator.db
+        user-name:
+        password:
+      ### [datasource]
+    jdbc-drivers:
+      ### [driver]
+      sqlite:
+        driver-class-name: org.sqlite.JDBC
+        driver-module-name: org.sqlite
+      ### [driver]

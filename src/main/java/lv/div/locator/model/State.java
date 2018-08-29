@@ -10,8 +10,8 @@ import javax.persistence.UniqueConstraint;
  * Current state for every connected device
  */
 @Entity
-@Table(name = "state",
-    uniqueConstraints = @UniqueConstraint(name = "unq_state_key", columnNames = {"deviceid", "ckey"})
+@Table(name = "state"
+//    uniqueConstraints = @UniqueConstraint(name = "unq_state_key", columnNames = {"deviceid", "ckey"})
 )
 public class State extends ConfigurationBased {
 

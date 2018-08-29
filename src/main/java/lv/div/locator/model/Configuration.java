@@ -17,8 +17,8 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(
-    name="configuration",
-    uniqueConstraints = @UniqueConstraint(name="unq_conf_key", columnNames = {"deviceid", "ckey"})
+    name="configuration"
+//    uniqueConstraints = @UniqueConstraint(name="unq_conf_key", columnNames = {"deviceid", "ckey"})
 )
 public class Configuration extends ConfigurationBased{
 
