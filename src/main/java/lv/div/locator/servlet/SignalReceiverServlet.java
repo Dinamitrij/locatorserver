@@ -84,6 +84,9 @@ public class SignalReceiverServlet extends HttpServlet {
         log.info("Http GET: GPS coordinates received: " + latitude + ", " + longitude + ", deicetime=" + deviceTimeMsec);
         log.info("Http GET: MLS data received: " + mlsData);
 
+        // Register last signal from device:
+        stateDao.registerLatestSignalFromDevice(deviceId);
+
 
         if (!StringUtils.EMPTY.equals(latitude) && !StringUtils.EMPTY.equals(longitude)) {
 

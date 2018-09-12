@@ -14,6 +14,7 @@ import lv.div.locator.model.mlsfences.MlsFence;
 import lv.div.locator.model.mlsfences.SafeAreas;
 import lv.div.locator.servlet.Statistics;
 import lv.div.locator.utils.GeoUtils;
+import lv.div.locator.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -28,12 +29,10 @@ import javax.ejb.Stateless;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
-import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 @Stateless
@@ -105,7 +104,7 @@ public class GoogleMapReporter {
             String staticMapUrl = StringUtils.EMPTY;
             try {
                 //http://is.gd/create.php?format=simple&url=%s
-
+                log.info("Map URL = " + sb.toString());
                 staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
                 // Make url shortener configurable
                 //HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
@@ -129,6 +128,13 @@ public class GoogleMapReporter {
                     sendGoogleMapReport(deviceId, staticMapUrl, "GPS");
                 }
             }
+
+        } else {
+            // Running on fresh database!
+            // Need to create 1 fake MAP reporting record:
+            GPSData placeholder = new GPSData();
+            placeholder.setId(0);
+            saveLastReportedGPSPoint(placeholder, deviceId);
 
         }
     }
@@ -254,7 +260,7 @@ public class GoogleMapReporter {
         MLSData mlsData = new MLSData();
 
         try {
-            HttpPost httpPost = new HttpPost("https://location.services.mozilla.com/v1/geolocate?key=test");
+            HttpPost httpPost = new HttpPost("https://location.services.mozilla.com/v1/geolocate?key=78f632ca-c828-4a90-806e-13dba2dbc2bc");
             StringEntity input = new StringEntity(mlsJson);
             input.setContentType("application/json");
             httpPost.setEntity(input);
@@ -375,53 +381,7 @@ public class GoogleMapReporter {
         final MLSData lastMLSpoint = mlsPoints.get(0);
         String lat = lastMLSpoint.getLatitude();
         String lon = lastMLSpoint.getLongitude();
-        final long mlsTime = lastMLSpoint.getInserted().getTime();
-        final Date now = new Date();
-        StringBuffer timeAgo = new StringBuffer();
-
-        long hoursAgo = 0;
-        hoursAgo = TimeUnit.MILLISECONDS.toHours(now.getTime() - mlsTime);
-        if (hoursAgo > 0) {
-            timeAgo.append(hoursAgo);
-            timeAgo.append("h ");
-        }
-        long minutesAgo = 0;
-        minutesAgo = TimeUnit.MILLISECONDS.toMinutes(now.getTime() - mlsTime);
-        if (hoursAgo > 0) {
-            minutesAgo = minutesAgo - (60 * hoursAgo);
-        }
-
-        if (minutesAgo > 0) {
-            if (hoursAgo > 0) {
-                timeAgo.append(String.format("%02d", minutesAgo));
-            } else {
-                timeAgo.append(minutesAgo);
-            }
-            timeAgo.append("m ");
-        } else if (hoursAgo > 0) {
-            timeAgo.append("00m ");
-        }
-        long secondsAgo = 0;
-        secondsAgo = TimeUnit.MILLISECONDS.toSeconds(now.getTime() - mlsTime);
-        if (minutesAgo > 0) {
-            secondsAgo = secondsAgo - (60 * minutesAgo);
-        }
-
-        if (secondsAgo > 0) {
-            if (minutesAgo > 0) {
-                timeAgo.append(String.format("%02d", secondsAgo));
-            } else {
-                timeAgo.append(secondsAgo);
-            }
-
-            timeAgo.append("s ");
-        } else if (minutesAgo > 0) {
-            timeAgo.append("00s ");
-        }
-
-        if (timeAgo.length() > 0) {
-            timeAgo.append("ago");
-        }
+        final String readableTimeDiff = Utils.readableTimeDiff(lastMLSpoint.getInserted().getTime());
 
         String staticMapUrl = StringUtils.EMPTY;
         if (!Const.EMPTY.equals(lat) && !Const.ZERO_COORDINATE.equals(lat)) {
@@ -451,13 +411,13 @@ public class GoogleMapReporter {
                 }
 
                 if (!StringUtils.isBlank(staticMapShortenedUrl)) {
-                    sendMLSMapReport(deviceId, staticMapShortenedUrl, timeAgo.toString());
+                    sendMLSMapReport(deviceId, staticMapShortenedUrl, readableTimeDiff);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 log.severe("Cannot get short URL for Google Map reporting. Using long one.");
                 if (!StringUtils.isBlank(staticMapUrl)) {
-                    sendMLSMapReport(deviceId, staticMapUrl, timeAgo.toString());
+                    sendMLSMapReport(deviceId, staticMapUrl, readableTimeDiff);
                 }
             }
         }
@@ -496,6 +456,7 @@ public class GoogleMapReporter {
             while ((line = rd.readLine()) != null) {
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -534,6 +495,7 @@ public class GoogleMapReporter {
             while ((line = rd.readLine()) != null) {
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -543,10 +505,10 @@ public class GoogleMapReporter {
         try {
 
             final State state = stateDao.findLastReportedByDevice(deviceId);
-            Long lastIdToFindAfter = 0L;
+            Integer lastIdToFindAfter = 0;
 
             if (null != state) {
-                lastIdToFindAfter = (long) state.getIntValue();
+                lastIdToFindAfter = state.getIntValue();
             }
 
             final Map<ConfigurationKey, Configuration> deviceConfig =

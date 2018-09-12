@@ -9,6 +9,7 @@ import lv.div.locator.model.State;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 import javax.ejb.EJB;
+import javax.ejb.Schedule;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.sql.Timestamp;
@@ -36,6 +37,7 @@ public class MLSReportSender {
     @Inject
     private Logger log;
 
+    @Schedule(dayOfWeek = "*", hour = "*", minute = "*", second = "0", persistent = false)
     public void sendMLSReportIfNeeded() {
         try {
 

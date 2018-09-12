@@ -1,16 +1,14 @@
 swarm:
-  datasources:
+ datasources:
     data-sources:
-      ### [datasource] -- should present here, but not used due to direct access from persistence.xml
       LocatorDS:
-        driver-name: sqlite
-        connection-url: jdbc:sqlite:c:/delete/locator.db
-        user-name:
-        password:
-      ## [datasource]
+        driver-name: myh2
+        #connection-url: jdbc:h2:file:c:/delete/locator.h2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        connection-url: jdbc:h2:file:/opt/locator/locator.h2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        user-name: sa
+        password: sa
     jdbc-drivers:
-      ### [driver] -- needed for "provided" scope of pom.xml
-      sqlite:
-        driver-class-name: org.sqlite.JDBC
-        driver-module-name: org.sqlite
-      ### [driver]
+      myh2:
+        driver-class-name: org.h2.Driver
+        xa-datasource-name: org.h2.jdbcx.JdbcDataSource
+        driver-module-name: com.h2database.h2

@@ -1,10 +1,13 @@
 package lv.div.locator.servlet;
 
+import lv.div.locator.commons.conf.ConfigurationKey;
 import lv.div.locator.conf.ConfigurationManager;
 import lv.div.locator.dao.BSSIDDao;
+import lv.div.locator.dao.StateDao;
 import lv.div.locator.healthcheck.AlertSender;
 import lv.div.locator.model.BSSIDdata;
 import lv.div.locator.model.GPSData;
+import lv.div.locator.model.State;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -32,6 +35,9 @@ public class BSSIDReceiverServlet extends HttpServlet {
     private BSSIDDao bssidDao;
 
     private Logger log = Logger.getLogger(BSSIDReceiverServlet.class.getName());
+
+    @EJB
+    private StateDao stateDao;
 
     @EJB
     private AlertSender alertSender;
@@ -68,6 +74,9 @@ public class BSSIDReceiverServlet extends HttpServlet {
                 longitude = (String) o.get("longitude");
                 accuracy = (String) o.get("accuracy");
                 battery = (String) o.get("battery");
+
+                // Register last signal from device:
+                stateDao.registerLatestSignalFromDevice(device);
 
                 JSONArray jsonMainArr = (JSONArray) o.get("bssids");
                 StringBuffer wifiStringData = new StringBuffer();

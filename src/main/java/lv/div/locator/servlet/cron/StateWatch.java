@@ -20,7 +20,8 @@ public class StateWatch extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        mlsReportSender.sendMLSReportIfNeeded();
+//        mlsReportSender.sendMLSReportIfNeeded();
+// converted to Time Bean
         resp.getWriter().print("OK " + new Date());
         resp.getWriter().flush();
     }

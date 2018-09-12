@@ -52,6 +52,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <jackson.version>2.8.2</jackson.version>
         <version.wildfly.swarm>2018.5.0</version.wildfly.swarm>
+        <version.h2>1.4.197</version.h2>
     </properties>
 
     <dependencyManagement>
@@ -76,7 +77,7 @@
         <dependency>
             <groupId>com.github.Dinamitrij</groupId>
             <artifactId>locatorcommons</artifactId>
-            <version>1.15</version>
+            <version>1.16</version>
         </dependency>
         <dependency>
             <groupId>com.sun.faces</groupId>
@@ -140,19 +141,19 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>${jackson.version}</version>
-            <optional>true</optional>
+            <!--<optional>true</optional>-->
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
-            <optional>true</optional>
+            <!--<optional>true</optional>-->
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
-            <optional>true</optional>
+            <!--<optional>true</optional>-->
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>
@@ -161,16 +162,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
-            <version>3.23.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.kemitix</groupId>
-            <artifactId>sqlite-dialect</artifactId>
-            <version>0.1.0</version>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+          <version>${version.h2}</version>
         </dependency>
 
 
@@ -202,14 +196,14 @@
             <build>
                 <finalName>locator2</finalName>
                 <plugins>
-                    <plugin>
+                    <!--plugin>
                         <artifactId>maven-war-plugin</artifactId>
                         <version>2.1.1</version>
                         <configuration>
                             <outputDirectory>../wardeploy4/deployments</outputDirectory>
                             <warName>ROOT</warName>
                         </configuration>
-                    </plugin>
+                    </plugin-->
                     <plugin>
                         <groupId>org.wildfly.swarm</groupId>
                         <artifactId>wildfly-swarm-plugin</artifactId>

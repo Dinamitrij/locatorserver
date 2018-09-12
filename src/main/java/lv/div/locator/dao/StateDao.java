@@ -1,7 +1,9 @@
 package lv.div.locator.dao;
 
 import lv.div.locator.commons.conf.ConfigurationKey;
+import lv.div.locator.conf.Conf;
 import lv.div.locator.model.State;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.Query;
 import java.sql.Timestamp;
@@ -14,6 +16,22 @@ public class StateDao extends GenericDao {
         final Query cleanupQ = entityManager.createNamedQuery("State.truncate");
         cleanupQ.executeUpdate();
     }
+
+
+    public void registerLatestSignalFromDevice(String deviceId) {
+        // Cleanup old IN_SAFE_ZONE state, if any:
+        deleteByDeviceAndKey(deviceId, ConfigurationKey.DEVICE_SIGNAL);
+        State safeZoneState = new State();
+        safeZoneState.setDeviceId(deviceId);
+
+        final String deviceName =
+            Conf.getInstance().deviceValues.get(deviceId).get(ConfigurationKey.DEVICE_ALIAS).getValue().toUpperCase();
+
+        safeZoneState.setDeviceName(deviceName);
+        safeZoneState.setKey(ConfigurationKey.DEVICE_SIGNAL);
+        save(safeZoneState);
+    }
+
 
     public State findLastReportedByDevice(String deviceId) {
         return findByDeviceAndKey(deviceId, ConfigurationKey.LAST_REPORTED_GPS_POINT);

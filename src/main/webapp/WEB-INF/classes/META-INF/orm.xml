@@ -122,7 +122,7 @@
                   <query>
                       <![CDATA[
 
-                        truncate table mlsdata;
+                        DELETE FROM mlsdata;
 
       	            ]]>
                   </query>
@@ -224,7 +224,7 @@
                   <query>
                       <![CDATA[
 
-                        truncate table state;
+                        DELETE FROM state;
 
       	            ]]>
                   </query>

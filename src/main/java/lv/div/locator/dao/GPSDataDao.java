@@ -25,7 +25,7 @@ public class GPSDataDao extends GenericDao {
     }
 
     public List<GPSData> findLastNonSafeAfterReported(String deviceId, Long accuracyValue,
-                                                      Long lastIdToFindAfter) {
+                                                      Integer lastIdToFindAfter) {
 
         final Query findLastNonSafeAfterReported =
             entityManager.createNamedQuery("GPSData.findLastNonSafeAfterReported");
