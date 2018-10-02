@@ -39,6 +39,15 @@ import java.util.logging.Logger;
 public class GoogleMapReporter {
 
     public static final String URL_SHORTENER_PREFIX = "http://tinyurl.com/api-create.php?url=";
+
+    /**
+     * Map prefix for building Map URLs
+     */
+    public static final String MAP_URL_COMMON_PREFIX = "https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/";
+    /**
+     * Map's "red" point - main center point (may not be of red color, actually)
+     */
+    public static final String MAP_CENTER_RED_POINT = "ff7f50";
     @EJB
     private ConfigurationManager configurationManager;
 
@@ -62,46 +71,43 @@ public class GoogleMapReporter {
 
         final int actualListSize = resultList.size();
 //        if (null != resultList && actualListSize >= Statistics.GPS_POINTS_COUNT_FOR_REPORT) {
-        if (null != resultList && actualListSize >0) {
+        if (null != resultList && actualListSize > 0) {
             // Only report, if we've got "N" values ahead...
 
             saveLastReportedGPSPoint(resultList.get(0), deviceId);
 
-            final StringBuffer sb = new StringBuffer(
-                "http://maps.google.com/maps/api/staticmap?");
+            final StringBuffer sb = new StringBuffer(MAP_URL_COMMON_PREFIX);
             try {
 
                 final GPSData lastPoint = resultList.get(0);
 
-                sb.append("center=");
-                sb.append(lastPoint.getLatitude());
-                sb.append(",");
-                sb.append(lastPoint.getLongitude());
-                sb.append("&zoom=15&size=300x300&maptype=terrain&sensor=false");
-
                 // Try to report 1..5 points all the time
                 int pointCountForReport = actualListSize;
-                if (actualListSize>Statistics.GPS_POINTS_COUNT_FOR_REPORT) {
+                if (actualListSize > Statistics.GPS_POINTS_COUNT_FOR_REPORT) {
                     pointCountForReport = Statistics.GPS_POINTS_COUNT_FOR_REPORT;
                 }
 
                 for (int i = pointCountForReport - 1; i > 0; i--) {
                     final GPSData gpsData = resultList.get(i);
-                    sb.append("&markers=color:blue|label:");
+                    sb.append("pin-s-");
                     sb.append(i);
-                    sb.append("|");
-                    sb.append(gpsData.getLatitude());
-                    sb.append(",");
+                    sb.append("+89cfef(");
                     sb.append(gpsData.getLongitude());
+                    sb.append(",");
+                    sb.append(gpsData.getLatitude());
+                    sb.append("),");
                 }
 
-                sb.append("&markers=color:red|label:x");
-                sb.append("|");
-                sb.append(lastPoint.getLatitude());
-                sb.append(",");
+                sb.append("pin-s-0+");
+                sb.append(MAP_CENTER_RED_POINT);
+                sb.append("(");
                 sb.append(lastPoint.getLongitude());
+                sb.append(",");
+                sb.append(lastPoint.getLatitude());
+                sb.append("),");
 
                 appendSafeAreasToMapUrl(deviceId, sb);
+                appendCenterZoomSizeAndToken(sb, lastPoint.getLongitude(), lastPoint.getLatitude());
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -147,6 +153,15 @@ public class GoogleMapReporter {
         }
     }
 
+    private void appendCenterZoomSizeAndToken(StringBuffer sb, String centerLongitude, String centerLatitude) {
+        sb.append("/");
+        sb.append(centerLongitude);
+        sb.append(",");
+        sb.append(centerLatitude);
+        sb.append(
+            ",15/300x300?access_token=pk.eyJ1IjoiZGltZWRyb2wiLCJhIjoiY2ptOHdwM2Z0MDMxdjNwbW93bm9wdHl1eiJ9.mVccA9wu5-f49Q6aiSafww");
+    }
+
     /**
      * Append safe areas as Google Maps Paths to generated maps url
      *
@@ -163,13 +178,15 @@ public class GoogleMapReporter {
         final SafeAreas safeAreasContainer = mlsFence.getSafeAreas();
         final List<MlsFence> mlsFences = safeAreasContainer.getMlsFences();
 
+        String fenceDivider = StringUtils.EMPTY;
         for (MlsFence fence : mlsFences) {
-            sb.append("&path=fillcolor:");
-            sb.append(fence.getFillcolor());
-            sb.append("|color:");
-            sb.append(fence.getColor());
-            sb.append("|enc:");
+
+            sb.append(fenceDivider);
+            sb.append("path-5+008000-0.3+006600-0.2(");
             sb.append(fence.getEnc());
+            sb.append(")");
+
+            fenceDivider = ",";
         }
     }
 
@@ -202,15 +219,13 @@ public class GoogleMapReporter {
         if (!Const.ZERO_COORDINATE.equals(lat)) {
             try {
 
-                String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
-                                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:red|label:x|" + lat + "," +
-                                    lon;
+//                String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
+//                                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:red|label:x|" + lat + "," +
+//                                    lon;
 
-                StringBuffer sb = new StringBuffer(mapTemplate);
+                final String mapUrlForSinglePoint = buildMapUrlForSinglePoint(deviceId, lat, lon, MAP_CENTER_RED_POINT);
 
-                appendSafeAreasToMapUrl(deviceId, sb);
-
-                staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
+                staticMapUrl = URLEncoder.encode(mapUrlForSinglePoint, "UTF-8");
 
                 HttpGet suHttpGet = new HttpGet(URL_SHORTENER_PREFIX + staticMapUrl);
 
@@ -248,7 +263,8 @@ public class GoogleMapReporter {
         MLSData mlsData = new MLSData();
 
         try {
-            HttpPost httpPost = new HttpPost("https://location.services.mozilla.com/v1/geolocate?key=78f632ca-c828-4a90-806e-13dba2dbc2bc");
+            HttpPost httpPost = new HttpPost(
+                "https://location.services.mozilla.com/v1/geolocate?key=78f632ca-c828-4a90-806e-13dba2dbc2bc");
             StringEntity input = new StringEntity(mlsJson);
             input.setContentType("application/json");
             httpPost.setEntity(input);
@@ -306,8 +322,10 @@ public class GoogleMapReporter {
 
         try {
 
-            log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude()+", "+previousMlsPoint.getLongitude());
-            log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude()+", "+lastMlsPoint.getLongitude());
+            log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude() + ", " +
+                     previousMlsPoint.getLongitude());
+            log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude() + ", " +
+                     lastMlsPoint.getLongitude());
 
             final long distance = calculateDistanceDiff(lastMlsPoint, previousMlsPoint);
 
@@ -373,15 +391,17 @@ public class GoogleMapReporter {
         String staticMapUrl = StringUtils.EMPTY;
         if (!Const.EMPTY.equals(lat) && !Const.ZERO_COORDINATE.equals(lat)) {
             try {
-                String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
-                                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:green|label:x|" + lat + "," +
-                                    lon;
+//                String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
+//                                    "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:green|label:x|" + lat + "," +
+//                                    lon;
+//
+//                StringBuffer sb = new StringBuffer(mapTemplate);
 
-                StringBuffer sb = new StringBuffer(mapTemplate);
+//                appendSafeAreasToMapUrl(deviceId, sb);
 
-                appendSafeAreasToMapUrl(deviceId, sb);
+                final String mapUrlForSingleMLSPoint = buildMapUrlForSinglePoint(deviceId, lat, lon, "4cbb17");
 
-                staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
+                staticMapUrl = URLEncoder.encode(mapUrlForSingleMLSPoint, "UTF-8");
 
                 HttpGet suHttpGet = new HttpGet(URL_SHORTENER_PREFIX + staticMapUrl);
 
@@ -406,6 +426,23 @@ public class GoogleMapReporter {
         }
     }
 
+    private String buildMapUrlForSinglePoint(String deviceId, String lat, String lon, String pointColor) {
+        final StringBuffer sb = new StringBuffer(MAP_URL_COMMON_PREFIX);
+
+        sb.append("pin-s-0+");
+        sb.append(pointColor);
+        sb.append("(");
+        sb.append(lon);
+        sb.append(",");
+        sb.append(lat);
+        sb.append("),");
+
+        appendSafeAreasToMapUrl(deviceId, sb);
+        appendCenterZoomSizeAndToken(sb, lon, lat);
+
+        return sb.toString();
+    }
+
     public void sendGoogleMapReport(final String deviceId, final String staticMapShortenedUrl, String title) {
 
         configurationManager.loadDeviceSpecificConfigIfNeeded(deviceId);
@@ -417,7 +454,7 @@ public class GoogleMapReporter {
 
         String zoneSign = "";
         final State safeZone = isInSafeZoneAlready(deviceId);
-        if (null!=safeZone) {
+        if (null != safeZone) {
             zoneSign = "\uD83C\uDFE0"; // Domik
         } else {
             zoneSign = "\uD83D\uDEA7"; // Yellow construction zone
@@ -425,7 +462,7 @@ public class GoogleMapReporter {
 
         final String messageText =
             deviceConfig.get(ConfigurationKey.DEVICE_ALIAS).getValue() +
-            ":%20"+zoneSign+"%20*" + title + "*[.](" + staticMapShortenedUrl + ")";
+            ":%20" + zoneSign + "%20*" + title + "*[.](" + staticMapShortenedUrl + ")";
         String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
                                    telegramChatId.getValue(),
                                    messageText);
@@ -455,7 +492,7 @@ public class GoogleMapReporter {
 
         String zoneSign = "";
         final State safeZone = isInSafeZoneAlready(deviceId);
-        if (null!=safeZone) {
+        if (null != safeZone) {
             zoneSign = "\uD83C\uDFE0"; // Domik
         } else {
             zoneSign = "\uD83D\uDEA7"; // Yellow construction zone
@@ -463,7 +500,8 @@ public class GoogleMapReporter {
 
         final String messageText =
             deviceConfig.get(ConfigurationKey.DEVICE_ALIAS).getValue() +
-            ":%20"+zoneSign+"%20*MLS*%20(" + StringUtils.replace(timeAgo, StringUtils.SPACE, "%20") + ")[.](" + staticMapShortenedUrl + ")";
+            ":%20" + zoneSign + "%20*MLS*%20(" + StringUtils.replace(timeAgo, StringUtils.SPACE, "%20") + ")[.](" +
+            staticMapShortenedUrl + ")";
 
         String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
                                    telegramChatId.getValue(),
@@ -548,7 +586,6 @@ public class GoogleMapReporter {
 
     }
 
-
     //TODO: Remove code duplication for theis method
     private State isInSafeZoneAlready(String deviceId) {
         //If "jumped" from 1 safe zone to another... Not handled!
@@ -572,6 +609,5 @@ public class GoogleMapReporter {
         }
 
     }
-
 
 }
