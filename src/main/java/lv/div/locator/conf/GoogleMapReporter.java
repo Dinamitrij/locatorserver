@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 @Stateless
 public class GoogleMapReporter {
 
+    public static final String URL_SHORTENER_PREFIX = "http://tinyurl.com/api-create.php?url=";
     @EJB
     private ConfigurationManager configurationManager;
 
@@ -115,8 +116,7 @@ public class GoogleMapReporter {
                 log.info("Map URL = " + sb.toString());
                 staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
                 // Make url shortener configurable
-                //HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
-                HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
+                HttpGet suHttpGet = new HttpGet(URL_SHORTENER_PREFIX + staticMapUrl);
 
                 HttpResponse r = c.execute(suHttpGet);
 
@@ -178,22 +178,6 @@ public class GoogleMapReporter {
         final List<GPSData> resultList = findLastNonSafe(deviceId);
         if (null != resultList && resultList.size() > 0) {
 
-//            final Date currentTime = new Date();
-//
-//            for (GPSData gpsData : resultList) {
-//
-//                // GPS data older than 30 min - is not relevant. Skip it.
-//                final Timestamp inserted = gpsData.getInserted();
-//                final long diff = currentTime.getTime() - inserted.getTime();
-//                long minutesSince = TimeUnit.MILLISECONDS.toMinutes(diff);
-//
-//                if (minutesSince < 30 && !Const.ZERO_COORDINATE.equals(gpsData.getLatitude())) {
-//                    sendReportForOnePoint(deviceId, gpsData);
-//                    break; // Only 1 point is needed
-//                }
-//            }
-//
-
             for (GPSData gpsData : resultList) {
                 if (!Const.ZERO_COORDINATE.equals(gpsData.getLatitude())) {
                     sendReportForOnePoint(deviceId, gpsData);
@@ -217,22 +201,18 @@ public class GoogleMapReporter {
 
         if (!Const.ZERO_COORDINATE.equals(lat)) {
             try {
-                //http://is.gd/create.php?format=simple&url=%s
 
                 String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
                                     "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:red|label:x|" + lat + "," +
                                     lon;
 
-                //staticMapUrl = URLEncoder.encode(mapTemplate, "UTF-8");
                 StringBuffer sb = new StringBuffer(mapTemplate);
 
                 appendSafeAreasToMapUrl(deviceId, sb);
 
                 staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
 
-
-//                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
-                HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
+                HttpGet suHttpGet = new HttpGet(URL_SHORTENER_PREFIX + staticMapUrl);
 
                 HttpResponse r = c.execute(suHttpGet);
 
@@ -393,21 +373,17 @@ public class GoogleMapReporter {
         String staticMapUrl = StringUtils.EMPTY;
         if (!Const.EMPTY.equals(lat) && !Const.ZERO_COORDINATE.equals(lat)) {
             try {
-                //http://is.gd/create.php?format=simple&url=%s
-
                 String mapTemplate = "http://maps.google.com/maps/api/staticmap?center=" + lat + "," + lon +
                                     "&zoom=15&size=300x300&maptype=terrain&sensor=false&markers=color:green|label:x|" + lat + "," +
                                     lon;
 
-                //staticMapUrl = URLEncoder.encode(mapTemplate, "UTF-8");
                 StringBuffer sb = new StringBuffer(mapTemplate);
 
                 appendSafeAreasToMapUrl(deviceId, sb);
 
                 staticMapUrl = URLEncoder.encode(sb.toString(), "UTF-8");
 
-//                HttpGet suHttpGet = new HttpGet("http://is.gd/create.php?format=simple&url=" + staticMapUrl);
-                HttpGet suHttpGet = new HttpGet("http://tinyurl.com/api-create.php?url=" + staticMapUrl);
+                HttpGet suHttpGet = new HttpGet(URL_SHORTENER_PREFIX + staticMapUrl);
 
                 HttpResponse r = c.execute(suHttpGet);
 
