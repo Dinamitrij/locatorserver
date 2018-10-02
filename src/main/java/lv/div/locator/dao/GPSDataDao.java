@@ -6,6 +6,7 @@ import lv.div.locator.servlet.Statistics;
 import org.apache.commons.lang3.StringUtils;
 import javax.ejb.Stateless;
 import javax.persistence.Query;
+import java.sql.Timestamp;
 import java.util.List;
 
 @Stateless
@@ -25,7 +26,7 @@ public class GPSDataDao extends GenericDao {
     }
 
     public List<GPSData> findLastNonSafeAfterReported(String deviceId, Long accuracyValue,
-                                                      Integer lastIdToFindAfter) {
+                                                      Timestamp lastDataInserted) {
 
         final Query findLastNonSafeAfterReported =
             entityManager.createNamedQuery("GPSData.findLastNonSafeAfterReported");
@@ -34,7 +35,7 @@ public class GPSDataDao extends GenericDao {
         findLastNonSafeAfterReported.setParameter("safenetwork", StringUtils.EMPTY);
         findLastNonSafeAfterReported.setParameter("latfilter", Const.ZERO_COORDINATE);  // not 0.0
         findLastNonSafeAfterReported.setParameter("accuracy", accuracyValue);  // accurate
-        findLastNonSafeAfterReported.setParameter("lastId", lastIdToFindAfter);
+        findLastNonSafeAfterReported.setParameter("lastDataInserted", lastDataInserted);
         findLastNonSafeAfterReported.setMaxResults(Statistics.GPS_POINTS_COUNT_FOR_REPORT);
         return (List<GPSData>) findLastNonSafeAfterReported.getResultList();
 

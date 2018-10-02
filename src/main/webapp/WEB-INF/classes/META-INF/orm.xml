@@ -153,7 +153,7 @@
             <query>
                 <![CDATA[
 
-                 SELECT g FROM GPSData g WHERE g.deviceId = :deviceId AND g.safeNetwork = :safenetwork AND g.latitude != :latfilter AND g.accuracy <= :accuracy AND g.id > :lastId ORDER BY g.id DESC
+                 SELECT g FROM GPSData g WHERE g.deviceId = :deviceId AND g.safeNetwork = :safenetwork AND g.latitude != :latfilter AND g.accuracy <= :accuracy AND g.inserted > :lastDataInserted ORDER BY g.id DESC
 
 	            ]]>
             </query>

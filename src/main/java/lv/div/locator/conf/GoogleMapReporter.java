@@ -29,8 +29,8 @@ import javax.ejb.Stateless;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
+import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -59,8 +59,10 @@ public class GoogleMapReporter {
 
         final List<GPSData> resultList = listLastNonSafeAfterReported(deviceId);
 
-        if (null != resultList && resultList.size() >=
-                                  Statistics.GPS_POINTS_COUNT_FOR_REPORT) { // Only report, if we've got "N" values ahead...
+        final int actualListSize = resultList.size();
+//        if (null != resultList && actualListSize >= Statistics.GPS_POINTS_COUNT_FOR_REPORT) {
+        if (null != resultList && actualListSize >0) {
+            // Only report, if we've got "N" values ahead...
 
             saveLastReportedGPSPoint(resultList.get(0), deviceId);
 
@@ -76,7 +78,13 @@ public class GoogleMapReporter {
                 sb.append(lastPoint.getLongitude());
                 sb.append("&zoom=15&size=300x300&maptype=terrain&sensor=false");
 
-                for (int i = resultList.size() - 1; i > 0; i--) {
+                // Try to report 1..5 points all the time
+                int pointCountForReport = actualListSize;
+                if (actualListSize>Statistics.GPS_POINTS_COUNT_FOR_REPORT) {
+                    pointCountForReport = Statistics.GPS_POINTS_COUNT_FOR_REPORT;
+                }
+
+                for (int i = pointCountForReport - 1; i > 0; i--) {
                     final GPSData gpsData = resultList.get(i);
                     sb.append("&markers=color:blue|label:");
                     sb.append(i);
@@ -315,24 +323,23 @@ public class GoogleMapReporter {
      */
     private boolean reportNeeded(MLSData lastMlsPoint, MLSData previousMlsPoint) {
         //TODO: Implement distance check! ( <20m. - reporting not needed )
-        return true;
 
-//        try {
-//
-//            log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude()+", "+previousMlsPoint.getLongitude());
-//            log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude()+", "+lastMlsPoint.getLongitude());
-//
-//            final long distance = calculateDistanceDiff(lastMlsPoint, previousMlsPoint);
-//
-//            log.info("Distance between 2 last MLS points is (m) = " + distance);
-//
-//            return distance > Statistics.GPS_ACCURACY_THRESHOLD;
-//
-//        } catch (Exception e) {
-//            // In case of any convertion error - force report data.
-//            log.warning("Error on calculation MLS distance. Force Reporting = TRUE");
-//            return true;
-//        }
+        try {
+
+            log.info("previousMlsPoint.getLatitude(),getLongitude()  = " + previousMlsPoint.getLatitude()+", "+previousMlsPoint.getLongitude());
+            log.info("lastMlsPoint.getLatitude(),getLongitude()  = " + lastMlsPoint.getLatitude()+", "+lastMlsPoint.getLongitude());
+
+            final long distance = calculateDistanceDiff(lastMlsPoint, previousMlsPoint);
+
+            log.info("Distance between 2 last MLS points is (m) = " + distance);
+
+            return distance > Statistics.GPS_ACCURACY_THRESHOLD;
+
+        } catch (Exception e) {
+            // In case of any convertion error - force report data.
+            log.warning("Error on calculation MLS distance. Force Reporting = TRUE");
+            return true;
+        }
 
     }
 
@@ -358,7 +365,7 @@ public class GoogleMapReporter {
         String staticMapShortenedUrl = null;
 
         final List<MLSData> mlsPoints = mlsDataDao.listTwoLastMLSPoints(deviceId);
-        if (mlsPoints.size() == 2) {
+        if (mlsPoints.size() > 1) {
             if (!reportNeeded(mlsPoints.get(0), mlsPoints.get(1))) {
                 log.info("No significant (less than " + Statistics.GPS_ACCURACY_THRESHOLD +
                          "m) MLSData location change for deviceId = " + deviceId + ". (skip reporting)");
@@ -505,10 +512,10 @@ public class GoogleMapReporter {
         try {
 
             final State state = stateDao.findLastReportedByDevice(deviceId);
-            Integer lastIdToFindAfter = 0;
+            Timestamp lastDataInserted = new Timestamp(0); // from the beginning of time
 
             if (null != state) {
-                lastIdToFindAfter = state.getIntValue();
+                lastDataInserted = state.getDateValue();
             }
 
             final Map<ConfigurationKey, Configuration> deviceConfig =
@@ -516,7 +523,7 @@ public class GoogleMapReporter {
             final Configuration gpsAccuracyThreshold =
                 deviceConfig.get(ConfigurationKey.DEVICE_MAP_REPORT_GPS_ACCURACY_THRESHOLD);
             return gpsDataDao
-                .findLastNonSafeAfterReported(deviceId, (long) gpsAccuracyThreshold.getIntValue(), lastIdToFindAfter);
+                .findLastNonSafeAfterReported(deviceId, (long) gpsAccuracyThreshold.getIntValue(), lastDataInserted);
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.EMPTY_LIST;

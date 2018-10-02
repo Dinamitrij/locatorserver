@@ -4,6 +4,7 @@ import lv.div.locator.commons.conf.ConfigurationKey;
 import lv.div.locator.conf.Conf;
 import lv.div.locator.model.Configuration;
 import lv.div.locator.model.GPSData;
+import lv.div.locator.model.State;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -170,7 +171,16 @@ public class AlertSender {
 
             sb.append(message);
 
-            sendAlert(globals.get(ConfigurationKey.ADMIN_ALERT_ADDRESS).getValue(), sb.toString());
+            final Map<ConfigurationKey, Configuration> deviceConfig =
+                         Conf.getInstance().deviceValues.get(deviceId);
+                     final Configuration telegramChatId = deviceConfig.get(ConfigurationKey.SEND_ALERT_ADDRESS_PARAM1);
+
+            String url = String.format(Conf.getInstance().globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(),
+                                       telegramChatId.getValue(), "#");
+            url = StringUtils.replace(url, "#", "%s");
+
+            sendAlert(url, sb.toString());
+//            sendAlert(globals.get(ConfigurationKey.SEND_ALERT_ADDRESS).getValue(), sb.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
